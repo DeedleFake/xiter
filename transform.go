@@ -34,3 +34,14 @@ func Limit[T any](seq Seq[T], n int) Seq[T] {
 		})
 	}
 }
+
+// Concat creates a new Seq that yields the values of each of the
+// provided Seqs in turn.
+func Concat[T any](seqs ...Seq[T]) Seq[T] {
+	return func(yield func(T) bool) bool {
+		for _, seq := range seqs {
+			seq(yield)
+		}
+		return false
+	}
+}
