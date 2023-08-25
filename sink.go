@@ -1,5 +1,7 @@
 package xiter
 
+import "cmp"
+
 // AppendTo appends the values of seq to s, returning the new slice.
 func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
 	seq(func(v T) bool {
@@ -57,4 +59,25 @@ type Addable interface {
 func Sum[T Addable](seq Seq[T]) T {
 	var zero T
 	return Reduce(seq, zero, func(total, v T) T { return total + v })
+}
+
+// IsSorted returns true if each element of seq is greater than the
+// previous one.
+func IsSorted[T cmp.Ordered](seq Seq[T]) bool {
+	return IsSortedFunc(seq, cmp.Compare)
+}
+
+// IsSortedFunc is like [IsSorted] but uses a custom comparison
+// function.
+func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
+	var prev T
+	c := func(T, T) int { return 1 }
+
+	sorted := true
+	seq(func(v T) bool {
+		sorted = c(prev, v) > 0
+		c = compare
+		return sorted
+	})
+	return sorted
 }
