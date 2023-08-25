@@ -1,7 +1,9 @@
 package xiter
 
 import (
+	"bytes"
 	"cmp"
+	"slices"
 	"testing"
 )
 
@@ -77,8 +79,11 @@ func TestMergeSort(t *testing.T) {
 func FuzzMergeSort(f *testing.F) {
 	f.Add([]byte("The quick brown fox jumped over the lazy dog."))
 	f.Fuzz(func(t *testing.T, s []byte) {
+		check := bytes.Clone(s)
+		slices.Sort(check)
+
 		mergesort(s)
-		if !IsSorted(Slice(s)) {
+		if !Equal(Slice(s), Slice(check)) {
 			t.Fatal(s)
 		}
 	})
