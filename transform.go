@@ -1,5 +1,7 @@
 package xiter
 
+import "cmp"
+
 // Map returns a Seq that yields the values of seq transformed via f.
 func Map[T1, T2 any](seq Seq[T1], f func(T1) T2) Seq[T2] {
 	return func(yield func(T2) bool) bool {
@@ -72,5 +74,53 @@ func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 				return false
 			}
 		}
+	}
+}
+
+// Merge returns a sequence that yields values from the ordered
+// sequences seq1 and seq2 one at a time to produce a new ordered
+// sequence made up of all of the elements of both seq1 and seq2.
+func Merge[T cmp.Ordered](seq1, seq2 Seq[T]) Seq[T] {
+	return MergeFunc(seq1, seq2, cmp.Compare)
+}
+
+// MergeFunc is like [Merge], but uses a custom comparison function
+// for determining the order of values.
+func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
+	return func(yield func(T) bool) bool {
+		p1, stop := Pull(seq1)
+		defer stop()
+		p2, stop := Pull(seq2)
+		defer stop()
+
+		v1, ok1 := p1()
+		v2, ok2 := p2()
+		for ok1 && ok2 {
+			var c int
+			if ok1 && ok2 {
+				c = compare(v1, v2)
+			}
+
+			switch {
+			case !ok2 || c<0:
+				if !yield(v1) {
+					return false
+				}
+				v1, ok1 = p1()
+			case !ok1 || c>0:
+				if !yield(v2) {
+					return false
+				}
+				v2, ok2 = p2()
+			default:
+				if !yield(v1) || !yield(v2) {
+					return false
+				}
+				v1, ok1 = p1()
+				v2, ok2 = p2()
+			}
+		}
+
+		return false
 	}
 }
