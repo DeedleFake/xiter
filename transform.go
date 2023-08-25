@@ -124,3 +124,82 @@ func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
 		return false
 	}
 }
+
+// Windows returns a slice over successive overlapping portions of
+// size n of the values yielded by seq. In other words,
+//
+//	Windows(Generate(0, 1), 3)
+//
+// will yield
+//
+//	[0, 1, 2]
+//	[1, 2, 3]
+//	[2, 3, 4]
+//
+// and so on. The slice yielded is reused from one iteration to the
+// next, so it should not be held onto after each iteration has ended.
+// [Map] and [slices.Clone] may come in handy for dealing with
+// situations where this is necessary.
+func Windows[T any](seq Seq[T], n int) Seq[[]T] {
+	return func(yield func([]T) bool) bool {
+		win := make([]T, 0, n)
+
+		seq(func(v T) bool {
+			if len(win) < n-1 {
+				win = append(win, v)
+				return true
+			}
+			if len(win) < n {
+				win = append(win, v)
+				return yield(win)
+			}
+
+			copy(win, win[1:])
+			win[len(win)-1] = v
+			return yield(win)
+		})
+		if len(win) < n {
+			yield(win)
+		}
+		return false
+	}
+}
+
+// Chunks works just like [Windows] except that the yielded slices of
+// elements do not overlap. In other words,
+//
+//	Chunks(Generate(0, 1), 3)
+//
+// will yield
+//
+//	[0, 1, 2]
+//	[3, 4, 5]
+//	[6, 7, 8]
+//
+// Like with Windows, the slice is reused between iterations.
+func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
+	return func(yield func([]T) bool) bool {
+		win := make([]T, 0, n)
+
+		seq(func(v T) bool {
+			if len(win) == n {
+				clear(win)
+				win = win[:0]
+			}
+
+			if len(win) < n-1 {
+				win = append(win, v)
+				return true
+			}
+			if len(win) < n {
+				win = append(win, v)
+				return yield(win)
+			}
+			return true
+		})
+		if len(win) < n {
+			yield(win)
+		}
+		return false
+	}
+}
