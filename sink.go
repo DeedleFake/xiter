@@ -81,3 +81,30 @@ func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
 	})
 	return sorted
 }
+
+// Equal returns true if seq1 and seq2 are the same length and each
+// element of each is equal to the element at the same point in the
+// sequence of the other.
+func Equal[T cmp.Ordered](seq1, seq2 Seq[T]) bool {
+	return EqualFunc(seq1, seq2, func(v1, v2 T) bool { return v1 == v2 })
+}
+
+// EqualFunc is like [Equal] but uses a custom comparison function to
+// determine the equivalence of the elements of each sequence.
+func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) bool {
+	p1, stop := Pull(seq1)
+	defer stop()
+	p2, stop := Pull(seq2)
+	defer stop()
+
+	for {
+		v1, ok1 := p1()
+		v2, ok2 := p2()
+		if !ok1 && !ok2 {
+			return true
+		}
+		if (ok1 != ok2) || !equal(v1, v2) {
+			return false
+		}
+	}
+}
