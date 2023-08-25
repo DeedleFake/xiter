@@ -95,7 +95,7 @@ func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
 
 		v1, ok1 := p1()
 		v2, ok2 := p2()
-		for ok1 && ok2 {
+		for ok1 || ok2 {
 			var c int
 			if ok1 && ok2 {
 				c = compare(v1, v2)

@@ -1,6 +1,9 @@
 package xiter
 
-import "testing"
+import (
+	"cmp"
+	"testing"
+)
 
 func TestZip(t *testing.T) {
 	s1 := Slice([]int{1, 2, 3, 4, 5})
@@ -33,6 +36,24 @@ func TestMerge(t *testing.T) {
 	s2 := Slice([]int{1, 2, 3, 4, 5})
 	r := Collect(Merge(s1, s2))
 	if [8]int(r) != [...]int{1, 2, 2, 3, 3, 4, 5, 5} {
-		t.Fatalf("unexpected result: %v", r)
+		t.Fatal(r)
+	}
+}
+
+func mergesort[T cmp.Ordered](s []T) Seq[T] {
+	if len(s) <= 1 {
+		return Slice(s)
+	}
+
+	left := mergesort(s[:len(s)/2])
+	right := mergesort(s[len(s)/2:])
+	return Merge(left, right)
+}
+
+func TestMergeSort(t *testing.T) {
+	s := []int{3, 2, 5, 1, 6, 2}
+	s = Collect(mergesort(s))
+	if [6]int(s) != [...]int{1, 2, 2, 3, 5, 6} {
+		t.Fatal(s)
 	}
 }
