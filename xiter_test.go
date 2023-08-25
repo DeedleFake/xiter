@@ -40,19 +40,23 @@ func TestMerge(t *testing.T) {
 	}
 }
 
-func mergesort[T cmp.Ordered](s []T) Seq[T] {
+func splitmerge[T cmp.Ordered](s []T) Seq[T] {
 	if len(s) <= 1 {
 		return Slice(s)
 	}
 
-	left := mergesort(s[:len(s)/2])
-	right := mergesort(s[len(s)/2:])
+	left := splitmerge(s[:len(s)/2])
+	right := splitmerge(s[len(s)/2:])
 	return Merge(left, right)
+}
+
+func mergesort[T cmp.Ordered](s []T) {
+	AppendTo(splitmerge(s), s[:0])
 }
 
 func TestMergeSort(t *testing.T) {
 	s := []int{3, 2, 5, 1, 6, 2}
-	s = Collect(mergesort(s))
+	mergesort(s)
 	if [6]int(s) != [...]int{1, 2, 2, 3, 5, 6} {
 		t.Fatal(s)
 	}
