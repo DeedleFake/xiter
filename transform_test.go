@@ -121,3 +121,13 @@ func FuzzMergeSort(f *testing.F) {
 		}
 	})
 }
+
+func TestChunks(t *testing.T) {
+	s := Collect(Map(Chunks(Slice([]int{1, 2, 3, 4, 5}),
+		2),
+		slices.Clone),
+	)
+	if !slices.EqualFunc(s, [][]int{{1, 2}, {3, 4}, {5}}, slices.Equal) {
+		t.Fatal(s)
+	}
+}
