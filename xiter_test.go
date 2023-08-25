@@ -31,6 +31,18 @@ func BenchmarkZip(b *testing.B) {
 	}
 }
 
+func TestIsSorted(t *testing.T) {
+	if IsSorted(Slice([]int{1, 2, 3, 2})) {
+		t.Fatal("is not sorted")
+	}
+	if !IsSorted(Slice([]int{1, 2, 3, 4, 5})) {
+		t.Fatal("is sorted")
+	}
+	if !IsSorted(Slice([]int{48, 48})) {
+		t.Fatal("is sorted")
+	}
+}
+
 func TestMerge(t *testing.T) {
 	s1 := Slice([]int{2, 3, 5})
 	s2 := Slice([]int{1, 2, 3, 4, 5})
@@ -60,4 +72,14 @@ func TestMergeSort(t *testing.T) {
 	if [6]int(s) != [...]int{1, 2, 2, 3, 5, 6} {
 		t.Fatal(s)
 	}
+}
+
+func FuzzMergeSort(f *testing.F) {
+	f.Add([]byte("The quick brown fox jumped over the lazy dog."))
+	f.Fuzz(func(t *testing.T, s []byte) {
+		mergesort(s)
+		if !IsSorted(Slice(s)) {
+			t.Fatal(s)
+		}
+	})
 }

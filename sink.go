@@ -61,8 +61,8 @@ func Sum[T Addable](seq Seq[T]) T {
 	return Reduce(seq, zero, func(total, v T) T { return total + v })
 }
 
-// IsSorted returns true if each element of seq is greater than the
-// previous one.
+// IsSorted returns true if each element of seq is greater than or
+// equal to the previous one.
 func IsSorted[T cmp.Ordered](seq Seq[T]) bool {
 	return IsSortedFunc(seq, cmp.Compare)
 }
@@ -71,12 +71,12 @@ func IsSorted[T cmp.Ordered](seq Seq[T]) bool {
 // function.
 func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
 	var prev T
-	c := func(T, T) int { return 1 }
+	c := func(T, T) int { return -1 }
 
 	sorted := true
 	seq(func(v T) bool {
-		sorted = c(prev, v) > 0
-		c = compare
+		sorted = c(prev, v) <= 0
+		c, prev = compare, v
 		return sorted
 	})
 	return sorted
