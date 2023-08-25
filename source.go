@@ -1,5 +1,20 @@
 package xiter
 
+// Generate returns a Seq that first yields start and then yields
+// successive values by adding step to the previous continuously. The
+// returned Seq does not end. To limit it to a specific number of
+// returned elements, use [Limit].
+func Generate[T Addable](start, step T) Seq[T] {
+	return func(yield func(T) bool) bool {
+		for {
+			if !yield(start) {
+				return false
+			}
+			start += step
+		}
+	}
+}
+
 // Slice returns a Seq over the elements of s.
 func Slice[T any, S ~[]T](s S) Seq[T] {
 	return func(yield func(T) bool) bool {
