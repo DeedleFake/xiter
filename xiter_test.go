@@ -7,6 +7,39 @@ import (
 	"testing"
 )
 
+func TestMap(t *testing.T) {
+	s := Slice([]int{1, 2, 3})
+	n := Collect(Map(s, func(v int) float64 { return float64(v*2) }))
+	if [3]float64(n) != [...]float64{2, 4, 6} {
+		t.Fatal(n)
+	}
+}
+
+func TestFilter(t *testing.T) {
+	s := Slice([]int{1, 2, 3})
+	n := Collect(Filter(s, func(v int) bool { return v%2 != 0 }))
+	if [2]int(n) != [...]int{1, 3} {
+		t.Fatal(n)
+	}
+}
+
+func TestLimit(t *testing.T) {
+	s := Collect(Limit(Generate(
+		0, 2),
+		3),
+	)
+	if [3]int(s) != [...]int{0, 2, 4} {
+		t.Fatal(s)
+	}
+}
+
+func TestConcat(t *testing.T) {
+	s := Collect(Concat(Slice([]int{1, 2, 3}), Slice([]int{3, 2, 5})))
+	if [6]int(s) != [...]int{1, 2, 3, 3, 2, 5} {
+		t.Fatal(s)
+	}
+}
+
 func TestZip(t *testing.T) {
 	s1 := Slice([]int{1, 2, 3, 4, 5})
 	s2 := Slice([]int{2, 3, 4, 5, 6})
