@@ -1,5 +1,10 @@
 package xiter
 
+import (
+	"unicode/utf8"
+	"unsafe"
+)
+
 // Generate returns a Seq that first yields start and then yields
 // successive values by adding step to the previous continuously. The
 // returned Seq does not end. To limit it to a specific number of
@@ -22,6 +27,33 @@ func Slice[T any, S ~[]T](s S) Seq[T] {
 			if !yield(v) {
 				return false
 			}
+		}
+		return false
+	}
+}
+
+// Bytes returns a Seq over the bytes of s.
+func Bytes(s string) Seq[byte] {
+	return func(yield func(byte) bool) bool {
+		for i := 0; i < len(s); i++ {
+			if !yield(s[i]) {
+				return false
+			}
+		}
+		return false
+	}
+}
+
+// Runes returns a Seq over the runes of s.
+func Runes[T ~[]byte | ~string](s T) Seq[rune] {
+	return func(yield func(rune) bool) bool {
+		b := unsafe.Slice(unsafe.StringData(*(*string)(unsafe.Pointer(&s))), len(s))
+		for len(b) > 0 {
+			r, size := utf8.DecodeRune(b)
+			if !yield(r) {
+				return false
+			}
+			b = b[size:]
 		}
 		return false
 	}
