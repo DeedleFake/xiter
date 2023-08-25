@@ -44,3 +44,17 @@ func Reduce[T, R any](seq Seq[T], initial R, reducer func(R, T) R) R {
 	})
 	return initial
 }
+
+// Addable is a type that should probably exist in the standard
+// library somewhere because it's quite command and kind of a pain to
+// write every time I need it.
+type Addable interface {
+	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | uintptr | float32 | float64 | complex64 | complex128 | string
+}
+
+// Sum returns the values of seq added together in the order that they
+// are yielded.
+func Sum[T Addable](seq Seq[T]) T {
+	var zero T
+	return Reduce(seq, zero, func(total, v T) T { return total + v })
+}
