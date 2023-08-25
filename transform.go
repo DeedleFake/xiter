@@ -195,7 +195,10 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 				win = append(win, v)
 				return yield(win)
 			}
-			return true
+
+			// This should only be reachable if n is 0, so just yield a
+			// bunch of empty slices because why not?
+			return yield(win)
 		})
 		if len(win) < n {
 			yield(win)
