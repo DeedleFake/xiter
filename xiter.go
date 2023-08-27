@@ -17,6 +17,15 @@ type Seq[T any] func(yield func(T) bool) bool
 // be.
 type SplitSeq[T1, T2 any] func(y1 func(T1) bool, y2 func(T2) bool) bool
 
+// Seq2 represents a two-value iterator.
+type Seq2[T1, T2 any] func(yield func(T1, T2) bool) bool
+
+// Pair contains two values of arbitrary types.
+type Pair[T1, T2 any] struct {
+	V1 T1
+	V2 T2
+}
+
 // Pull simulates a pull-iterator using Go's built-in concurrency
 // primitives in lieu of coroutines. It handles all synchronization
 // internally, so despite running the iterator in a new thread, there

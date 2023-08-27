@@ -15,8 +15,8 @@ func TestRunes(t *testing.T) {
 
 func TestMapEntries(t *testing.T) {
 	s := Collect(MapEntries(map[string]string{"this": "is", "a": "test"}))
-	slices.SortFunc(s, func(e1, e2 MapEntry[string, string]) int { return cmp.Compare(e1.Key, e2.Key) })
-	if [2]MapEntry[string, string](s) != [...]MapEntry[string, string]{{"a", "test"}, {"this", "is"}} {
+	slices.SortFunc(s, func(e1, e2 Pair[string, string]) int { return cmp.Compare(e1.V1, e2.V2) })
+	if [2]Pair[string, string](s) != [...]Pair[string, string]{{"a", "test"}, {"this", "is"}} {
 		t.Fatal(s)
 	}
 }

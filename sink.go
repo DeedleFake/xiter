@@ -195,3 +195,12 @@ func Min[T cmp.Ordered](seq Seq[T]) T {
 func Max[T cmp.Ordered](seq Seq[T]) T {
 	return Fold(seq, func(v1, v2 T) T { return max(v1, v2) })
 }
+
+// FromPair converts a Seq of pairs to a two-value Seq.
+func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
+	return func(yield func(T1, T2) bool) bool {
+		return seq(func(v Pair[T1, T2]) bool {
+			return yield(v.V1, v.V2)
+		})
+	}
+}
