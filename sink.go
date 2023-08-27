@@ -53,11 +53,24 @@ func Reduce[T, R any](seq Seq[T], initial R, reducer func(R, T) R) R {
 	return initial
 }
 
+// Fold performs a [Reduce] but uses the first value yielded by seq
+// instead of a provided initial value. If seq doesn't yield any
+// values, the zero value of T is returned.
+func Fold[T any](seq Seq[T], reducer func(T, T) T) T {
+	var prev T
+	r := func(v1, v2 T) T { return v2 }
+	seq(func(v T) bool {
+		prev = r(prev, v)
+		r = reducer
+		return true
+	})
+	return prev
+}
+
 // Sum returns the values of seq added together in the order that they
 // are yielded.
 func Sum[T Addable](seq Seq[T]) T {
-	var zero T
-	return Reduce(seq, zero, func(total, v T) T { return total + v })
+	return Fold(seq, func(total, v T) T { return total + v })
 }
 
 // IsSorted returns true if each element of seq is greater than or
@@ -146,4 +159,16 @@ func Partition[T any](seq Seq[T], f func(T) bool) (true, false []T) {
 // slices.
 func PartitionInto[T any](seq Seq[T], f func(T) bool, true, false []T) ([]T, []T) {
 	return AppendSplitTo(Split(seq, f), true, false)
+}
+
+// Min returns the minimum element yielded by seq or the zero value if
+// seq doesn't yield anything.
+func Min[T cmp.Ordered](seq Seq[T]) T {
+	return Fold(seq, func(v1, v2 T) T { return min(v1, v2) })
+}
+
+// Max returns maximum element yielded by seq or the zero value if seq
+// doesn't yield anything.
+func Max[T cmp.Ordered](seq Seq[T]) T {
+	return Fold(seq, func(v1, v2 T) T { return max(v1, v2) })
 }

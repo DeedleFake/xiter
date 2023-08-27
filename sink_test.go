@@ -28,3 +28,15 @@ func TestPartition(t *testing.T) {
 		t.Fatal(s2)
 	}
 }
+
+func TestExtent(t *testing.T) {
+	s := Of(3, 2, 5, 1, 6, -2, 10)
+	min := Min(s)
+	max := Max(s)
+	if min != -2 {
+		t.Fatal(min)
+	}
+	if max != 10 {
+		t.Fatal(max)
+	}
+}
