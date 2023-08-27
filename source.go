@@ -2,6 +2,7 @@ package xiter
 
 import (
 	"context"
+	"strings"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -62,6 +63,27 @@ func Runes[T ~[]byte | ~string](s T) Seq[rune] {
 			b = b[size:]
 		}
 		return false
+	}
+}
+
+// StringSplit returns an iterator over the substrings of s that are
+// separated by sep. It behaves very similarly to [strings.Split].
+func StringSplit(s, sep string) Seq[string] {
+	if sep == "" {
+		return Map(Runes(s), func(c rune) string { return string(c) })
+	}
+
+	return func(yield func(string) bool) bool {
+		for {
+			m := strings.Index(s, sep)
+			if m < 0 {
+				return yield(s)
+			}
+			if !yield(s[:m]) {
+				return false
+			}
+			s = s[m+len(sep):]
+		}
 	}
 }
 

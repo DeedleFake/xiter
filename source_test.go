@@ -34,3 +34,10 @@ func TestRecvContext(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestStringSplit(t *testing.T) {
+	s := Collect(StringSplit("this is a test", " "))
+	if !slices.Equal(s, []string{"this", "is", "a", "test"}) {
+		t.Fatal(s)
+	}
+}
