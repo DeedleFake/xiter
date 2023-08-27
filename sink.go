@@ -73,6 +73,12 @@ func Sum[T Addable](seq Seq[T]) T {
 	return Fold(seq, func(total, v T) T { return total + v })
 }
 
+// Product returns the values of seq multiplied together. It returns
+// 1 if no values are yielded.
+func Product[T Multiplyable](seq Seq[T]) T {
+	return Reduce(seq, 1, func(product, v T) T { return product*v })
+}
+
 // IsSorted returns true if each element of seq is greater than or
 // equal to the previous one.
 func IsSorted[T cmp.Ordered](seq Seq[T]) bool {

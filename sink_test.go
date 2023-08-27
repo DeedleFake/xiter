@@ -19,6 +19,13 @@ func TestSum(t *testing.T) {
 	}
 }
 
+func TestProduct(t *testing.T) {
+	p := Product(Of(3, 2, -5))
+	if p != -30 {
+		t.Fatal(p)
+	}
+}
+
 func TestPartition(t *testing.T) {
 	s1, s2 := Partition(Of(1, 2, 3, 4, 5), func(v int) bool { return v%2 == 0 })
 	if !Equal(Slice(s1), Of(2, 4)) {
