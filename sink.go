@@ -36,6 +36,17 @@ func Contains[T comparable](seq Seq[T], v T) bool {
 	return ok
 }
 
+// Any returns true if f(element) is true for any elements of seq.
+func Any[T any](seq Seq[T], f func(T) bool) bool {
+	_, ok := Find(seq, f)
+	return ok
+}
+
+// All returns true if f(element) is true for every element of seq.
+func All[T any](seq Seq[T], f func(T) bool) bool {
+	return !Any(seq, f)
+}
+
 // Reduce calls reducer on each value of seq, passing it initial as
 // its first argument on the first call and then the result of the
 // previous call for each call after that. It returns the final value

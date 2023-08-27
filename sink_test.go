@@ -47,3 +47,17 @@ func TestExtent(t *testing.T) {
 		t.Fatal(max)
 	}
 }
+
+func TestAny(t *testing.T) {
+	r := Any(Of(2, 4, 6, 7), func(v int) bool { return v%2 != 0 })
+	if !r {
+		t.Fatal(r)
+	}
+}
+
+func TestAll(t *testing.T) {
+	r := All(Of(2, 4, 6, 7), func(v int) bool { return v%2 == 0 })
+	if r {
+		t.Fatal(r)
+	}
+}
