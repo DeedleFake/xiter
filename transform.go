@@ -24,6 +24,20 @@ func Filter[T any](seq Seq[T], f func(T) bool) Seq[T] {
 	}
 }
 
+// Skip returns a Seq that skips over the first n elements of seq and
+// then yields the rest normally.
+func Skip[T any](seq Seq[T], n int) Seq[T] {
+	return func(yield func(T) bool) bool {
+		return seq(func(v T) bool {
+			if n > 0 {
+				n--
+				return true
+			}
+			return yield(v)
+		})
+	}
+}
+
 // Limit returns a Seq that yields at most n values from seq.
 func Limit[T any](seq Seq[T], n int) Seq[T] {
 	return func(yield func(T) bool) bool {

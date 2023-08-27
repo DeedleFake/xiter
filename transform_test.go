@@ -23,6 +23,17 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func TestSkip(t *testing.T) {
+	s := Collect(Skip(Limit(Generate(
+		0, 1),
+		3),
+		2),
+	)
+	if !Equal(Slice(s), Of(2)) {
+		t.Fatal(s)
+	}
+}
+
 func TestLimit(t *testing.T) {
 	s := Collect(Limit(Generate(
 		0, 2),
