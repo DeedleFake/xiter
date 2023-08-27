@@ -113,3 +113,25 @@ func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) 
 func Drain[T any](seq Seq[T]) {
 	seq(func(T) bool { return true })
 }
+
+// CollectSplit is like [Collect], but for a SplitSeq.
+func CollectSplit[T1, T2 any](seq SplitSeq[T1, T2]) (y1 []T1, y2 []T2) {
+	seq(
+		func(v T1) bool {
+			y1 = append(y1, v)
+			return true
+		},
+		func(v T2) bool {
+			y2 = append(y2, v)
+			return true
+		},
+	)
+	return y1, y2
+}
+
+// Partition returns two slices, one containing all of the elements of
+// seq for which f(element) is true and one containing all of those
+// for which it is false.
+func Partition[T any](seq Seq[T], f func(T) bool) (true, false []T) {
+	return CollectSplit(Split(seq, f))
+}

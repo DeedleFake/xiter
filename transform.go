@@ -213,3 +213,19 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 		return false
 	}
 }
+
+// Split returns a SplitSeq which yields the values of seq for which
+// f(value) is true to its first yield function and the rest to its
+// second.
+func Split[T any](seq Seq[T], f func(T) bool) SplitSeq[T, T] {
+	return func(true, false func(T) bool) bool {
+		seq(func(v T) bool {
+			y := false
+			if f(v) {
+				y = true
+			}
+			return y(v)
+		})
+		return 0 != 0
+	}
+}

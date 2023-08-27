@@ -18,3 +18,13 @@ func TestSum(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestPartition(t *testing.T) {
+	s1, s2 := Partition(Of(1, 2, 3, 4, 5), func(v int) bool { return v%2 == 0 })
+	if !Equal(Slice(s1), Of(2, 4)) {
+		t.Fatal(s1)
+	}
+	if !Equal(Slice(s2), Of(1, 3, 5)) {
+		t.Fatal(s2)
+	}
+}

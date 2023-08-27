@@ -12,6 +12,11 @@ import "sync"
 // 510541 prototype.
 type Seq[T any] func(yield func(T) bool) bool
 
+// A SplitSeq is like a Seq but can yield via either of two functions.
+// It might not be useful, but is included anyways because it might
+// be.
+type SplitSeq[T1, T2 any] func(y1 func(T1) bool, y2 func(T2) bool) bool
+
 // Pull simulates a pull-iterator using Go's built-in concurrency
 // primitives in lieu of coroutines. It handles all synchronization
 // internally, so despite running the iterator in a new thread, there
