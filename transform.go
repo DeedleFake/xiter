@@ -38,6 +38,21 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 	}
 }
 
+// Handle splits seq by calling f for any non-nil errors yielded by
+// seq. If f returns false, iteration stops. If an iteration's error
+// is nil or f returns true, the other value is yielded by the
+// returned Seq.
+func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
+	return func(yield func(T) bool) bool {
+		return seq(func(v T, err error) bool {
+			if err != nil {
+				return f(err) && yield(v)
+			}
+			return yield(v)
+		})
+	}
+}
+
 // Limit returns a Seq that yields at most n values from seq.
 func Limit[T any](seq Seq[T], n int) Seq[T] {
 	return func(yield func(T) bool) bool {
