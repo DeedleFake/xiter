@@ -30,6 +30,12 @@ func Find[T any](seq Seq[T], f func(T) bool) (r T, ok bool) {
 	return r, ok
 }
 
+// Contains returns true if v is an element of seq.
+func Contains[T comparable](seq Seq[T], v T) bool {
+	_, ok := Find(seq, func(e T) bool { return v == e })
+	return ok
+}
+
 // Reduce calls reducer on each value of seq, passing it initial as
 // its first argument on the first call and then the result of the
 // previous call for each call after that. It returns the final value
@@ -100,4 +106,10 @@ func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) 
 			return false
 		}
 	}
+}
+
+// Drain empties seq, discarding every single value and returning once
+// it's finished.
+func Drain[T any](seq Seq[T]) {
+	seq(func(T) bool { return true })
 }
