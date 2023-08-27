@@ -13,7 +13,13 @@ func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
 
 // Collect returns a slice of the elements of seq.
 func Collect[T any](seq Seq[T]) []T {
-	return AppendTo(seq, []T(nil))
+	return CollectSize(seq, 0)
+}
+
+// CollectSize pre-allocates the slice being collected into to the
+// given size. It is provided purely for convenience.
+func CollectSize[T any](seq Seq[T], len int) []T {
+	return AppendTo(seq, make([]T, 0, len))
 }
 
 // Find returns the first value of seq for which f(value) returns
