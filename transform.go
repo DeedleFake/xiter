@@ -40,10 +40,17 @@ func Limit[T any](seq Seq[T], n int) Seq[T] {
 // Concat creates a new Seq that yields the values of each of the
 // provided Seqs in turn.
 func Concat[T any](seqs ...Seq[T]) Seq[T] {
+	return Flatten(Slice(seqs))
+}
+
+// Flatten yields all of the elements of each Seq yielded from seq in
+// turn.
+func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
 	return func(yield func(T) bool) bool {
-		for _, seq := range seqs {
-			seq(yield)
-		}
+		seq(func(s Seq[T]) bool {
+			s(yield)
+			return true
+		})
 		return false
 	}
 }
