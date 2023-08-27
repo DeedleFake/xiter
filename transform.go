@@ -271,3 +271,22 @@ func Split2[T1, T2 any](seq Seq2[T1, T2]) SplitSeq[T1, T2] {
 		})
 	}
 }
+
+// Cache returns a Seq that can be iterated more than once. On the
+// first iteration, it yields the values from seq and caches them. On
+// subsequent iterations, it yields the cached values from the first
+// iteration.
+func Cache[T any](seq Seq[T]) Seq[T] {
+	var cache []T
+	return func(yield func(T) bool) bool {
+		if cache != nil {
+			return Slice(cache)(yield)
+		}
+
+		cache = []T{}
+		return seq(func(v T) bool {
+			cache = append(cache, v)
+			return yield(v)
+		})
+	}
+}
