@@ -1,6 +1,7 @@
 package xiter
 
 import (
+	"context"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -93,5 +94,22 @@ func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
 		return seq(func(v1 T1, v2 T2) bool {
 			return yield(Pair[T1, T2]{v1, v2})
 		})
+	}
+}
+
+// RecvContext returns a Seq that receives from c continuously until
+// either c is closed or the given context is canceled.
+func RecvContext[T any](ctx context.Context, c <-chan T) Seq[T] {
+	return func(yield func(T) bool) bool {
+		for {
+			select {
+			case <-ctx.Done():
+				return false
+			case v, ok := <-c:
+				if !ok || !yield(v) {
+					return false
+				}
+			}
+		}
 	}
 }

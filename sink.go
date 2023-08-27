@@ -1,6 +1,9 @@
 package xiter
 
-import "cmp"
+import (
+	"cmp"
+	"context"
+)
 
 // AppendTo appends the values of seq to s, returning the new slice.
 func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
@@ -203,4 +206,18 @@ func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
 			return yield(v.V1, v.V2)
 		})
 	}
+}
+
+// SendContext sends values from seq to c repeatedly until either the
+// sequence ends or ctx is canceled. It blocks until one of those two
+// things happens.
+func SendContext[T any](seq Seq[T], ctx context.Context, c chan<- T) {
+	seq(func(v T) bool {
+		select {
+		case <-ctx.Done():
+			return false
+		case c <- v:
+			return true
+		}
+	})
 }
