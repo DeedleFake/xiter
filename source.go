@@ -20,6 +20,11 @@ func Generate[T Addable](start, step T) Seq[T] {
 	}
 }
 
+// Of returns a Seq that yields the provided values.
+func Of[T any](vals ...T) Seq[T] {
+	return Slice(vals)
+}
+
 // Slice returns a Seq over the elements of s.
 func Slice[T any, S ~[]T](s S) Seq[T] {
 	return func(yield func(T) bool) bool {
