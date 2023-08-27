@@ -116,22 +116,34 @@ func Drain[T any](seq Seq[T]) {
 
 // CollectSplit is like [Collect], but for a SplitSeq.
 func CollectSplit[T1, T2 any](seq SplitSeq[T1, T2]) (y1 []T1, y2 []T2) {
+	return AppendSplitTo(seq, y1, y2)
+}
+
+// AppendSplitTo collects the elements of seq by appending them to
+// existing slices.
+func AppendSplitTo[T1, T2 any](seq SplitSeq[T1, T2], s1 []T1, s2 []T2) ([]T1, []T2) {
 	seq(
 		func(v T1) bool {
-			y1 = append(y1, v)
+			s1 = append(s1, v)
 			return true
 		},
 		func(v T2) bool {
-			y2 = append(y2, v)
+			s2 = append(s2, v)
 			return true
 		},
 	)
-	return y1, y2
+	return s1, s2
 }
 
 // Partition returns two slices, one containing all of the elements of
 // seq for which f(element) is true and one containing all of those
 // for which it is false.
 func Partition[T any](seq Seq[T], f func(T) bool) (true, false []T) {
-	return CollectSplit(Split(seq, f))
+	return PartitionInto(seq, f, true, false)
+}
+
+// PartitionInto performs a [Partition] by appending to two existing
+// slices.
+func PartitionInto[T any](seq Seq[T], f func(T) bool, true, false []T) ([]T, []T) {
+	return AppendSplitTo(Split(seq, f), true, false)
 }
