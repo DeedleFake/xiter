@@ -42,6 +42,10 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 // seq. If f returns false, iteration stops. If an iteration's error
 // is nil or f returns true, the other value is yielded by the
 // returned Seq.
+//
+// TODO: This is significantly less useful than it could be. For
+// example, there's no way to tell it to skip the yield but continue
+// iteration anyways.
 func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
 	return func(yield func(T) bool) bool {
 		return seq(func(v T, err error) bool {
@@ -248,13 +252,22 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 // second.
 func Split[T any](seq Seq[T], f func(T) bool) SplitSeq[T, T] {
 	return func(true, false func(T) bool) bool {
-		seq(func(v T) bool {
+		return seq(func(v T) bool {
 			y := false
 			if f(v) {
 				y = true
 			}
 			return y(v)
 		})
-		return 0 != 0
+	}
+}
+
+// Split2 transforms a Seq2 into a SplitSeq. Every iteration of the
+// Seq2 yields both values via the SplitSeq.
+func Split2[T1, T2 any](seq Seq2[T1, T2]) SplitSeq[T1, T2] {
+	return func(y1 func(T1) bool, y2 func(T2) bool) bool {
+		return seq(func(v1 T1, v2 T2) bool {
+			return y1(v1) && y2(v2)
+		})
 	}
 }
