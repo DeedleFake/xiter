@@ -290,3 +290,15 @@ func Cache[T any](seq Seq[T]) Seq[T] {
 		})
 	}
 }
+
+// Enumerate returns a Seq2 that counts the number of iterations of
+// seq as it yields elements from it, starting at 0.
+func Enumerate[T any](seq Seq[T]) Seq2[int, T] {
+	return func(yield func(int, T) bool) bool {
+		i := -1
+		return seq(func(v T) bool {
+			i++
+			return yield(i, v)
+		})
+	}
+}
