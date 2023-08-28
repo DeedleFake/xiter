@@ -16,6 +16,13 @@ func TestFind(t *testing.T) {
 	}
 }
 
+func TestContains(t *testing.T) {
+	c := Contains(Of(1, 2, 3), 2)
+	if !c {
+		t.Fatal(c)
+	}
+}
+
 func TestSum(t *testing.T) {
 	s := Sum(Slice([]string{"a", " ", "test"}))
 	if s != "a test" {
@@ -78,4 +85,21 @@ func TestSendContext(t *testing.T) {
 	if !slices.Equal(s, []int{3, 2, 5}) {
 		t.Fatal(s)
 	}
+}
+
+func FuzzSendRecvContext(f *testing.F) {
+	f.Add([]byte("The quick brown fox jumps over the lazy dog."))
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		c := make(chan byte, len(data))
+		SendContext(Slice(data), ctx, c)
+		close(c)
+		s := Collect(RecvContext(ctx, c))
+		if !slices.Equal(data, s) {
+			t.Fatal(s)
+		}
+	})
 }
