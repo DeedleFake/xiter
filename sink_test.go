@@ -1,6 +1,10 @@
 package xiter
 
-import "testing"
+import (
+	"context"
+	"slices"
+	"testing"
+)
 
 func TestFind(t *testing.T) {
 	s, _ := Find(Windows(Generate(
@@ -59,5 +63,19 @@ func TestAll(t *testing.T) {
 	r := All(Of(2, 4, 6, 7), func(v int) bool { return v%2 == 0 })
 	if r {
 		t.Fatal(r)
+	}
+}
+
+func TestSendContext(t *testing.T) {
+	c := make(chan int, 3)
+	SendContext(Of(3, 2, 5), context.Background(), c)
+	s := []int{<-c, <-c, <-c}
+	select {
+	case v := <-c:
+		t.Fatal(v)
+	default:
+	}
+	if !slices.Equal(s, []int{3, 2, 5}) {
+		t.Fatal(s)
 	}
 }

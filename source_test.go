@@ -7,6 +7,13 @@ import (
 	"testing"
 )
 
+func TestBytes(t *testing.T) {
+	s := Collect(Bytes("テスト"))
+	if !slices.Equal(s, []byte("テスト")) {
+		t.Fatal(s)
+	}
+}
+
 func TestRunes(t *testing.T) {
 	s := Collect(Runes("これはテストです。"))
 	if [9]rune(s) != [9]rune([]rune("これはテストです。")) {
