@@ -302,3 +302,19 @@ func Enumerate[T any](seq Seq[T]) Seq2[int, T] {
 		})
 	}
 }
+
+// Or yields all of the values from the first Seq which yields at
+// least one value and then stops.
+func Or[T any](seqs ...Seq[T]) Seq[T] {
+	ss := Filter(Slice(seqs), func(s Seq[T]) bool { return s != nil })
+	return func(yield func(T) bool) bool {
+		return ss(func(seq Seq[T]) bool {
+			cont := true
+			seq(func(v T) bool {
+				cont = false
+				return yield(v)
+			})
+			return cont
+		})
+	}
+}

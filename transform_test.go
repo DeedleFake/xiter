@@ -142,3 +142,10 @@ func TestChunks(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestOr(t *testing.T) {
+	s := Collect(Or(Of[int](), nil, Of(1, 2, 3), Of(4, 5, 6)))
+	if !slices.Equal(s, []int{1, 2, 3}) {
+		t.Fatal(s)
+	}
+}
