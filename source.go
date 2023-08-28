@@ -88,10 +88,10 @@ func StringSplit(s, sep string) Seq[string] {
 }
 
 // MapEntries returns a Seq over the key-value pairs of m.
-func MapEntries[K comparable, V any, M ~map[K]V](m M) Seq[Pair[K, V]] {
-	return func(yield func(Pair[K, V]) bool) bool {
+func MapEntries[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
+	return func(yield func(K, V) bool) bool {
 		for k, v := range m {
-			if !yield(Pair[K, V]{k, v}) {
+			if !yield(k, v) {
 				return false
 			}
 		}
@@ -101,12 +101,12 @@ func MapEntries[K comparable, V any, M ~map[K]V](m M) Seq[Pair[K, V]] {
 
 // MapKeys returns a Seq over the keys of m.
 func MapKeys[K comparable, V any, M ~map[K]V](m M) Seq[K] {
-	return Map(MapEntries(m), func(v Pair[K, V]) K { return v.V1 })
+	return V1(MapEntries(m))
 }
 
 // MapValues returns a Seq over the values of m.
 func MapValues[K comparable, V any, M ~map[K]V](m M) Seq[V] {
-	return Map(MapEntries(m), func(v Pair[K, V]) V { return v.V2 })
+	return V2(MapEntries(m))
 }
 
 // ToPair takes a two-value iterator and produces a single-value
@@ -115,6 +115,24 @@ func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
 	return func(yield func(Pair[T1, T2]) bool) bool {
 		return seq(func(v1 T1, v2 T2) bool {
 			return yield(Pair[T1, T2]{v1, v2})
+		})
+	}
+}
+
+// V1 returns a Seq which iterates over only the T1 elements of seq.
+func V1[T1, T2 any](seq Seq2[T1, T2]) Seq[T1] {
+	return func(yield func(T1) bool) bool {
+		return seq(func(v1 T1, v2 T2) bool {
+			return yield(v1)
+		})
+	}
+}
+
+// V2 returns a Seq which iterates over only the T2 elements of seq.
+func V2[T1, T2 any](seq Seq2[T1, T2]) Seq[T2] {
+	return func(yield func(T2) bool) bool {
+		return seq(func(v1 T1, v2 T2) bool {
+			return yield(v2)
 		})
 	}
 }
