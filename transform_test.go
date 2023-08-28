@@ -143,6 +143,39 @@ func TestChunks(t *testing.T) {
 	}
 }
 
+func TestSplit2(t *testing.T) {
+	s1, s2 := CollectSplit(Split2(FromPair(Slice([]Pair[int32, int64]{{1, 2}, {3, 4}, {5, 6}}))))
+	if !slices.Equal(s1, []int32{1, 3, 5}) {
+		t.Fatal(s1)
+	}
+	if !slices.Equal(s2, []int64{2, 4, 6}) {
+		t.Fatal(s2)
+	}
+}
+
+func TestCache(t *testing.T) {
+	var i int
+	f := func(yield func(int) bool) bool {
+		yield(i)
+		i++
+		return false
+	}
+	seq := Cache(f)
+	if s := Collect(seq); !slices.Equal(s, []int{0}) {
+		t.Fatal(s)
+	}
+	if s := Collect(seq); !slices.Equal(s, []int{0}) {
+		t.Fatal(s)
+	}
+}
+
+func TestEnumerate(t *testing.T) {
+	s := Collect(ToPair(Enumerate(Limit(Generate(0, 2), 3))))
+	if !slices.Equal(s, []Pair[int, int]{{0, 0}, {1, 2}, {2, 4}}) {
+		t.Fatal(s)
+	}
+}
+
 func TestOr(t *testing.T) {
 	s := Collect(Or(Of[int](), nil, Of(1, 2, 3), Of(4, 5, 6)))
 	if !slices.Equal(s, []int{1, 2, 3}) {
