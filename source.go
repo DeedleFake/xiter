@@ -27,11 +27,18 @@ func Of[T any](vals ...T) Seq[T] {
 	return OfSlice(vals)
 }
 
-// OfSlice returns a Seq over the elements of s.
+// OfSlice returns a Seq over the elements of s. It is equivalent to
+// range s with the index ignored.
 func OfSlice[T any, S ~[]T](s S) Seq[T] {
-	return func(yield func(T) bool) bool {
-		for _, v := range s {
-			if !yield(v) {
+	return V2(OfSliceIndex(s))
+}
+
+// OfSliceIndex returns a Seq over the elements of s. It is equivalent
+// to range s.
+func OfSliceIndex[T any, S ~[]T](s S) Seq2[int, T] {
+	return func(yield func(int, T) bool) bool {
+		for i, v := range s {
+			if !yield(i, v) {
 				return false
 			}
 		}
@@ -134,6 +141,19 @@ func V2[T1, T2 any](seq Seq2[T1, T2]) Seq[T2] {
 		return seq(func(v1 T1, v2 T2) bool {
 			return yield(v2)
 		})
+	}
+}
+
+// OfChan returns a Seq which yields values received from c. The
+// sequence ends when c is closed. It is equivalent to range c.
+func OfChan[T any](c <-chan T) Seq[T] {
+	return func(yield func(T) bool) bool {
+		for v := range c {
+			if !yield(v) {
+				return false
+			}
+		}
+		return false
 	}
 }
 
