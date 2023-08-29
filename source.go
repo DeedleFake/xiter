@@ -24,11 +24,11 @@ func Generate[T Addable](start, step T) Seq[T] {
 
 // Of returns a Seq that yields the provided values.
 func Of[T any](vals ...T) Seq[T] {
-	return Slice(vals)
+	return OfSlice(vals)
 }
 
-// Slice returns a Seq over the elements of s.
-func Slice[T any, S ~[]T](s S) Seq[T] {
+// OfSlice returns a Seq over the elements of s.
+func OfSlice[T any, S ~[]T](s S) Seq[T] {
 	return func(yield func(T) bool) bool {
 		for _, v := range s {
 			if !yield(v) {
@@ -87,8 +87,8 @@ func StringSplit(s, sep string) Seq[string] {
 	}
 }
 
-// MapEntries returns a Seq over the key-value pairs of m.
-func MapEntries[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
+// OfMap returns a Seq over the key-value pairs of m.
+func OfMap[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
 	return func(yield func(K, V) bool) bool {
 		for k, v := range m {
 			if !yield(k, v) {
@@ -101,12 +101,12 @@ func MapEntries[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
 
 // MapKeys returns a Seq over the keys of m.
 func MapKeys[K comparable, V any, M ~map[K]V](m M) Seq[K] {
-	return V1(MapEntries(m))
+	return V1(OfMap(m))
 }
 
 // MapValues returns a Seq over the values of m.
 func MapValues[K comparable, V any, M ~map[K]V](m M) Seq[V] {
-	return V2(MapEntries(m))
+	return V2(OfMap(m))
 }
 
 // ToPair takes a two-value iterator and produces a single-value

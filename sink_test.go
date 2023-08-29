@@ -10,7 +10,7 @@ func TestFind(t *testing.T) {
 	s, _ := Find(Windows(Generate(
 		0, 1),
 		3),
-		func(win []int) bool { return Sum(Slice(win)) >= 100 })
+		func(win []int) bool { return Sum(OfSlice(win)) >= 100 })
 	if [3]int(s) != [...]int{33, 34, 35} {
 		t.Fatal(s)
 	}
@@ -24,7 +24,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	s := Sum(Slice([]string{"a", " ", "test"}))
+	s := Sum(OfSlice([]string{"a", " ", "test"}))
 	if s != "a test" {
 		t.Fatal(s)
 	}
@@ -39,10 +39,10 @@ func TestProduct(t *testing.T) {
 
 func TestPartition(t *testing.T) {
 	s1, s2 := Partition(Of(1, 2, 3, 4, 5), func(v int) bool { return v%2 == 0 })
-	if !Equal(Slice(s1), Of(2, 4)) {
+	if !Equal(OfSlice(s1), Of(2, 4)) {
 		t.Fatal(s1)
 	}
-	if !Equal(Slice(s2), Of(1, 3, 5)) {
+	if !Equal(OfSlice(s2), Of(1, 3, 5)) {
 		t.Fatal(s2)
 	}
 }
@@ -95,7 +95,7 @@ func FuzzSendRecvContext(f *testing.F) {
 		defer cancel()
 
 		c := make(chan byte, len(data))
-		SendContext(Slice(data), ctx, c)
+		SendContext(OfSlice(data), ctx, c)
 		close(c)
 		s := Collect(RecvContext(ctx, c))
 		if !slices.Equal(data, s) {

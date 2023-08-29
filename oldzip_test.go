@@ -7,8 +7,8 @@ func BenchmarkOldZip(b *testing.B) {
 	slice2 := []int{2, 3, 4, 5, 6}
 
 	for i := 0; i < b.N; i++ {
-		s1 := Slice(slice1)
-		s2 := Slice(slice2)
+		s1 := OfSlice(slice1)
+		s2 := OfSlice(slice2)
 		seq := oldZip(s1, s2)
 		seq(func(v Zipped[int, int]) bool {
 			return true
