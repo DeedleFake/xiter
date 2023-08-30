@@ -121,7 +121,7 @@ func MapValues[K comparable, V any, M ~map[K]V](m M) Seq[V] {
 func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
 	return func(yield func(Pair[T1, T2]) bool) bool {
 		return seq(func(v1 T1, v2 T2) bool {
-			return yield(Pair[T1, T2]{v1, v2})
+			return yield(P(v1, v2))
 		})
 	}
 }

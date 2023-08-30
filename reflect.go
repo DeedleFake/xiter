@@ -48,10 +48,7 @@ func ofValueIndexable(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 func ofValueString(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	return FromPair(Map(ToPair(Enumerate(Runes(v.String()))),
 		func(v Pair[int, rune]) Pair[reflect.Value, reflect.Value] {
-			return Pair[reflect.Value, reflect.Value]{
-				V1: reflect.ValueOf(v.V1),
-				V2: reflect.ValueOf(v.V2),
-			}
+			return P(reflect.ValueOf(v.V1), reflect.ValueOf(v.V2))
 		}))
 }
 

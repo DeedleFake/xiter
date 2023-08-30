@@ -26,6 +26,11 @@ type Pair[T1, T2 any] struct {
 	V2 T2
 }
 
+// P returns a Pair containing v1 and v2.
+func P[T1, T2 any](v1 T1, v2 T2) Pair[T1, T2] {
+	return Pair[T1, T2]{V1: v1, V2: v2}
+}
+
 // Split is a convenience function that just returns the two values
 // contained in the pair.
 func (p Pair[T1, T2]) Split() (T1, T2) {
