@@ -28,7 +28,7 @@ type Pair[T1, T2 any] struct {
 
 // Pull simulates a pull-iterator using Go's built-in concurrency
 // primitives in lieu of coroutines. It handles all synchronization
-// internally, so despite running the iterator in a new thread, there
+// internally, so, despite running the iterator in a new thread, there
 // shouldn't be any data races, but there is some performance
 // overhead.
 //
