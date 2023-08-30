@@ -26,6 +26,12 @@ type Pair[T1, T2 any] struct {
 	V2 T2
 }
 
+// Split is a convenience function that just returns the two values
+// contained in the pair.
+func (p Pair[T1, T2]) Split() (T1, T2) {
+	return p.V1, p.V2
+}
+
 // Pull simulates a pull-iterator using Go's built-in concurrency
 // primitives in lieu of coroutines. It handles all synchronization
 // internally, so, despite running the iterator in a new thread, there
