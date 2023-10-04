@@ -96,7 +96,7 @@ func Sum[T Addable](seq Seq[T]) T {
 // Product returns the values of seq multiplied together. It returns
 // 1 if no values are yielded.
 func Product[T Multiplyable](seq Seq[T]) T {
-	return Reduce(seq, 1, func(product, v T) T { return product*v })
+	return Reduce(seq, 1, func(product, v T) T { return product * v })
 }
 
 // IsSorted returns true if each element of seq is greater than or
@@ -201,8 +201,8 @@ func Max[T cmp.Ordered](seq Seq[T]) T {
 
 // FromPair converts a Seq of pairs to a two-value Seq.
 func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
-	return func(yield func(T1, T2) bool) bool {
-		return seq(func(v Pair[T1, T2]) bool {
+	return func(yield func(T1, T2) bool) {
+		seq(func(v Pair[T1, T2]) bool {
 			return yield(v.Split())
 		})
 	}

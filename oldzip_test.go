@@ -42,7 +42,7 @@ func oldZip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 		seq2(oldZipSend(done, c2))
 	}()
 
-	return func(yield func(Zipped[T1, T2]) bool) bool {
+	return func(yield func(Zipped[T1, T2]) bool) {
 		defer close(done)
 
 		var c1hold chan T1
@@ -70,16 +70,16 @@ func oldZip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 			}
 
 		send: // Dear lord, what is even going on here?
-			if (val.OK1 || (c1 == c1hold)) && (val.OK2 || (c2 == c2hold)) && !(c1==c1hold && c2==c2hold) {
+			if (val.OK1 || (c1 == c1hold)) && (val.OK2 || (c2 == c2hold)) && !(c1 == c1hold && c2 == c2hold) {
 				if !yield(val) {
-					return false
+					return
 				}
 				c1, c1hold, c2, c2hold = c1hold, nil, c2hold, nil
 				val = Zipped[T1, T2]{}
 			}
 
 			if (c1 == c1hold) && (c2 == c2hold) {
-				return false
+				return
 			}
 		}
 	}

@@ -9,7 +9,7 @@ import (
 
 func TestMap(t *testing.T) {
 	s := OfSlice([]int{1, 2, 3})
-	n := Collect(Map(s, func(v int) float64 { return float64(v*2) }))
+	n := Collect(Map(s, func(v int) float64 { return float64(v * 2) }))
 	if [3]float64(n) != [...]float64{2, 4, 6} {
 		t.Fatal(n)
 	}
@@ -155,10 +155,10 @@ func TestSplit2(t *testing.T) {
 
 func TestCache(t *testing.T) {
 	var i int
-	f := func(yield func(int) bool) bool {
+	f := func(yield func(int) bool) {
 		yield(i)
 		i++
-		return false
+		return
 	}
 	seq := Cache(f)
 	if s := Collect(seq); !slices.Equal(s, []int{0}) {
