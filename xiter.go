@@ -10,15 +10,15 @@ import "sync"
 // to a break statement. The return value of the Seq function itself
 // is completely ignored, but present to be compatible with the CL
 // 510541 prototype.
-type Seq[T any] func(yield func(T) bool) bool
+type Seq[T any] func(yield func(T) bool)
 
 // A SplitSeq is like a Seq but can yield via either of two functions.
 // It might not be useful, but is included anyways because it might
 // be.
-type SplitSeq[T1, T2 any] func(y1 func(T1) bool, y2 func(T2) bool) bool
+type SplitSeq[T1, T2 any] func(y1 func(T1) bool, y2 func(T2) bool)
 
 // Seq2 represents a two-value iterator.
-type Seq2[T1, T2 any] func(yield func(T1, T2) bool) bool
+type Seq2[T1, T2 any] func(yield func(T1, T2) bool)
 
 // Pair contains two values of arbitrary types.
 type Pair[T1, T2 any] struct {

@@ -35,13 +35,13 @@ func OfValue(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 }
 
 func ofValueIndexable(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
-	return func(yield func(v1, v2 reflect.Value) bool) bool {
+	return func(yield func(v1, v2 reflect.Value) bool) {
 		for i := 0; i < v.Len(); i++ {
 			if !yield(reflect.ValueOf(i), v.Index(i)) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }
 
@@ -54,36 +54,36 @@ func ofValueString(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 
 func ofValueChan(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	var zero reflect.Value
-	return func(yield func(v1, v2 reflect.Value) bool) bool {
+	return func(yield func(v1, v2 reflect.Value) bool) {
 		for {
 			val, ok := v.Recv()
 			if !ok {
-				return false
+				return
 			}
 			if !yield(val, zero) {
-				return false
+				return
 			}
 		}
 	}
 }
 
 func ofValueMap(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
-	return func(yield func(v1, v2 reflect.Value) bool) bool {
+	return func(yield func(v1, v2 reflect.Value) bool) {
 		iter := v.MapRange()
 		defer iter.Reset(reflect.Value{})
 		for iter.Next() {
 			if !yield(iter.Key(), iter.Value()) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }
 
 func ofValuePointerToArray(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	sv := v.Elem()
 	if !sv.IsValid() {
-		return func(func(v1, v2 reflect.Value) bool) bool { return false }
+		return func(func(v1, v2 reflect.Value) bool) { return }
 	}
 	return ofValueIndexable(sv)
 }
@@ -93,7 +93,7 @@ func isValueSeq(v reflect.Value) bool {
 	if t.NumIn() != 1 {
 		return false
 	}
-	if t.NumOut()!=1 || t.Out(0).Kind()!=reflect.Bool {
+	if t.NumOut() != 1 || t.Out(0).Kind() != reflect.Bool {
 		return false
 	}
 
@@ -101,10 +101,10 @@ func isValueSeq(v reflect.Value) bool {
 	if yt.Kind() != reflect.Func {
 		return false
 	}
-	if yt.NumIn()!=1 && yt.NumIn()!=2 {
+	if yt.NumIn() != 1 && yt.NumIn() != 2 {
 		return false
 	}
-	if yt.NumOut()!=1 || t.Out(0).Kind()!=reflect.Bool {
+	if yt.NumOut() != 1 || t.Out(0).Kind() != reflect.Bool {
 		return false
 	}
 
@@ -112,7 +112,7 @@ func isValueSeq(v reflect.Value) bool {
 }
 
 func ofValueFunc(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
-	return func(yield func(v1, v2 reflect.Value) bool) bool {
+	return func(yield func(v1, v2 reflect.Value) bool) {
 		yv := reflect.MakeFunc(v.Type().In(0), func(vals []reflect.Value) []reflect.Value {
 			v1, v2 := vals[0], reflect.Value{}
 			if len(vals) == 2 {
@@ -121,13 +121,13 @@ func ofValueFunc(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 			return []reflect.Value{reflect.ValueOf(yield(v1, v2))}
 		})
 		v.Call([]reflect.Value{yv})
-		return false
+		return
 	}
 }
 
 func ofValueInt(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	inc := func(v reflect.Value) reflect.Value { return reflect.ValueOf(v.Int() + 1) }
-	if v.CanInt() && v.Int()<0 {
+	if v.CanInt() && v.Int() < 0 {
 		panic(fmt.Errorf("%v < 0", v.Int()))
 	}
 	if v.CanUint() {
@@ -138,12 +138,12 @@ func ofValueInt(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	}
 
 	var zero reflect.Value
-	return func(yield func(v1, v2 reflect.Value) bool) bool {
+	return func(yield func(v1, v2 reflect.Value) bool) {
 		for i := reflect.Zero(v.Type()); i.Interface() != v.Interface(); i = inc(i) {
 			if !yield(i, zero) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }

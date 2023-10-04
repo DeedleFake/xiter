@@ -12,10 +12,10 @@ import (
 // returned Seq does not end. To limit it to a specific number of
 // returned elements, use [Limit].
 func Generate[T Addable](start, step T) Seq[T] {
-	return func(yield func(T) bool) bool {
+	return func(yield func(T) bool) {
 		for {
 			if !yield(start) {
-				return false
+				return
 			}
 			start += step
 		}
@@ -36,40 +36,40 @@ func OfSlice[T any, S ~[]T](s S) Seq[T] {
 // OfSliceIndex returns a Seq over the elements of s. It is equivalent
 // to range s.
 func OfSliceIndex[T any, S ~[]T](s S) Seq2[int, T] {
-	return func(yield func(int, T) bool) bool {
+	return func(yield func(int, T) bool) {
 		for i, v := range s {
 			if !yield(i, v) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }
 
 // Bytes returns a Seq over the bytes of s.
 func Bytes(s string) Seq[byte] {
-	return func(yield func(byte) bool) bool {
+	return func(yield func(byte) bool) {
 		for i := 0; i < len(s); i++ {
 			if !yield(s[i]) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }
 
 // Runes returns a Seq over the runes of s.
 func Runes[T ~[]byte | ~string](s T) Seq[rune] {
-	return func(yield func(rune) bool) bool {
+	return func(yield func(rune) bool) {
 		b := unsafe.Slice(unsafe.StringData(*(*string)(unsafe.Pointer(&s))), len(s))
 		for len(b) > 0 {
 			r, size := utf8.DecodeRune(b)
 			if !yield(r) {
-				return false
+				return
 			}
 			b = b[size:]
 		}
-		return false
+		return
 	}
 }
 
@@ -80,14 +80,15 @@ func StringSplit(s, sep string) Seq[string] {
 		return Map(Runes(s), func(c rune) string { return string(c) })
 	}
 
-	return func(yield func(string) bool) bool {
+	return func(yield func(string) bool) {
 		for {
 			m := strings.Index(s, sep)
 			if m < 0 {
-				return yield(s)
+				yield(s)
+				return
 			}
 			if !yield(s[:m]) {
-				return false
+				return
 			}
 			s = s[m+len(sep):]
 		}
@@ -96,13 +97,13 @@ func StringSplit(s, sep string) Seq[string] {
 
 // OfMap returns a Seq over the key-value pairs of m.
 func OfMap[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
-	return func(yield func(K, V) bool) bool {
+	return func(yield func(K, V) bool) {
 		for k, v := range m {
 			if !yield(k, v) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }
 
@@ -119,8 +120,8 @@ func MapValues[K comparable, V any, M ~map[K]V](m M) Seq[V] {
 // ToPair takes a two-value iterator and produces a single-value
 // iterator of pairs.
 func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
-	return func(yield func(Pair[T1, T2]) bool) bool {
-		return seq(func(v1 T1, v2 T2) bool {
+	return func(yield func(Pair[T1, T2]) bool) {
+		seq(func(v1 T1, v2 T2) bool {
 			return yield(P(v1, v2))
 		})
 	}
@@ -128,8 +129,8 @@ func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
 
 // V1 returns a Seq which iterates over only the T1 elements of seq.
 func V1[T1, T2 any](seq Seq2[T1, T2]) Seq[T1] {
-	return func(yield func(T1) bool) bool {
-		return seq(func(v1 T1, v2 T2) bool {
+	return func(yield func(T1) bool) {
+		seq(func(v1 T1, v2 T2) bool {
 			return yield(v1)
 		})
 	}
@@ -137,8 +138,8 @@ func V1[T1, T2 any](seq Seq2[T1, T2]) Seq[T1] {
 
 // V2 returns a Seq which iterates over only the T2 elements of seq.
 func V2[T1, T2 any](seq Seq2[T1, T2]) Seq[T2] {
-	return func(yield func(T2) bool) bool {
-		return seq(func(v1 T1, v2 T2) bool {
+	return func(yield func(T2) bool) {
+		seq(func(v1 T1, v2 T2) bool {
 			return yield(v2)
 		})
 	}
@@ -147,27 +148,27 @@ func V2[T1, T2 any](seq Seq2[T1, T2]) Seq[T2] {
 // OfChan returns a Seq which yields values received from c. The
 // sequence ends when c is closed. It is equivalent to range c.
 func OfChan[T any](c <-chan T) Seq[T] {
-	return func(yield func(T) bool) bool {
+	return func(yield func(T) bool) {
 		for v := range c {
 			if !yield(v) {
-				return false
+				return
 			}
 		}
-		return false
+		return
 	}
 }
 
 // RecvContext returns a Seq that receives from c continuously until
 // either c is closed or the given context is canceled.
 func RecvContext[T any](ctx context.Context, c <-chan T) Seq[T] {
-	return func(yield func(T) bool) bool {
+	return func(yield func(T) bool) {
 		for {
 			select {
 			case <-ctx.Done():
-				return false
+				return
 			case v, ok := <-c:
 				if !ok || !yield(v) {
-					return false
+					return
 				}
 			}
 		}
