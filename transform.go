@@ -99,6 +99,26 @@ type Zipped[T1, T2 any] struct {
 
 // Zip returns a new Seq that yields the values of seq1 and seq2
 // simultaneously.
+func Zip2Pull[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
+	return func(yield func(Zipped[T1, T2]) bool) {
+		p1, stop := Pull(seq1)
+		defer stop()
+		p2, stop := Pull(seq2)
+		defer stop()
+
+		for {
+			var val Zipped[T1, T2]
+			val.V1, val.OK1 = p1()
+			val.V2, val.OK2 = p2()
+			if (!val.OK1 && !val.OK2) || !yield(val) {
+				return
+			}
+		}
+	}
+}
+
+// Zip returns a new Seq that yields the values of seq1 and seq2
+// simultaneously.
 func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 	return func(body func(Zipped[T1, T2]) bool) {
 		p2, stop2 := Pull(seq2)

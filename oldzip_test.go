@@ -3,6 +3,7 @@ package xiter
 import "testing"
 
 func BenchmarkOldZip(b *testing.B) {
+	b.ReportAllocs()
 	slice1 := []int{1, 2, 3, 4, 5}
 	slice2 := []int{2, 3, 4, 5, 6}
 
