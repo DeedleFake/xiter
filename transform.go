@@ -108,6 +108,26 @@ type Zipped[T1, T2 any] struct {
 
 // Zip returns a new Seq that yields the values of seq1 and seq2
 // simultaneously.
+func Zip2Pull[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
+	return func(yield func(Zipped[T1, T2]) bool) {
+		p1, stop := iter.Pull(seq1.Seq())
+		defer stop()
+		p2, stop := iter.Pull(seq2.Seq())
+		defer stop()
+
+		for {
+			var val Zipped[T1, T2]
+			val.V1, val.OK1 = p1()
+			val.V2, val.OK2 = p2()
+			if (!val.OK1 && !val.OK2) || !yield(val) {
+				return
+			}
+		}
+	}
+}
+
+// Zip returns a new Seq that yields the values of seq1 and seq2
+// simultaneously.
 //
 // Must not be a method. See https://github.com/golang/go/issues/80172.
 func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
