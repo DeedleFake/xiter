@@ -91,7 +91,6 @@ func TestZipShort2(t *testing.T) {
 }
 
 func BenchmarkZip(b *testing.B) {
-	b.ReportAllocs()
 	slice1 := []int{1, 2, 3, 4, 5}
 	slice2 := []int{2, 3, 4, 5, 6}
 
@@ -99,21 +98,6 @@ func BenchmarkZip(b *testing.B) {
 		s1 := S(slices.Values(slice1))
 		s2 := S(slices.Values(slice2))
 		seq := Zip(s1, s2)
-		seq(func(v Zipped[int, int]) bool {
-			return true
-		})
-	}
-}
-
-func BenchmarkZip2P(b *testing.B) {
-	b.ReportAllocs()
-	slice1 := []int{1, 2, 3, 4, 5}
-	slice2 := []int{2, 3, 4, 5, 6}
-
-	for b.Loop() {
-		s1 := S(slices.Values(slice1))
-		s2 := S(slices.Values(slice2))
-		seq := Zip2Pull(s1, s2)
 		seq(func(v Zipped[int, int]) bool {
 			return true
 		})
