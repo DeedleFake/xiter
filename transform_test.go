@@ -63,6 +63,35 @@ func TestZip(t *testing.T) {
 	})
 }
 
+func TestZipShort1(t *testing.T) {
+	s1 := OfSlice([]int{1, 2, 3, 4})
+	s2 := OfSlice([]int{2, 3, 4, 5, 1})
+	seq := Zip(s1, s2)
+	seq(func(v Zipped[int, int]) bool {
+		if v.V2-v.V1 != 1 {
+			t.Fatalf("unexpected values: %+v", v)
+		}
+		return true
+	})
+	t.Logf("Greetings from TestZipShort1")
+}
+
+func TestZipShort2(t *testing.T) {
+	s1 := OfSlice([]int{1, 2, 3, 4, -1, -2})
+	s2 := OfSlice([]int{2, 3, 4, 5})
+	seq := Zip(s1, s2)
+	seq(func(v Zipped[int, int]) bool {
+		if v.V1 == -2 {
+			return false
+		}
+		if v.V2-v.V1 != 1 {
+			t.Fatalf("unexpected values: %+v", v)
+		}
+		return true
+	})
+	t.Logf("Greetings from TestZipShort2")
+}
+
 func BenchmarkZip(b *testing.B) {
 	slice1 := []int{1, 2, 3, 4, 5}
 	slice2 := []int{2, 3, 4, 5, 6}
