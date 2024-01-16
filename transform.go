@@ -101,9 +101,9 @@ type Zipped[T1, T2 any] struct {
 // simultaneously.
 func _Zip[T1, T2 any](seq1 _Seq[T1], seq2 _Seq[T2]) _Seq[Zipped[T1, T2]] {
 	return func(yield func(Zipped[T1, T2]) bool) {
-		p1, stop := Pull(seq1)
+		p1, stop := _Pull(seq1)
 		defer stop()
-		p2, stop := Pull(seq2)
+		p2, stop := _Pull(seq2)
 		defer stop()
 
 		for {
@@ -128,9 +128,9 @@ func _Merge[T cmp.Ordered](seq1, seq2 _Seq[T]) _Seq[T] {
 // for determining the order of values.
 func _MergeFunc[T any](seq1, seq2 _Seq[T], compare func(T, T) int) _Seq[T] {
 	return func(yield func(T) bool) {
-		p1, stop := Pull(seq1)
+		p1, stop := _Pull(seq1)
 		defer stop()
-		p2, stop := Pull(seq2)
+		p2, stop := _Pull(seq2)
 		defer stop()
 
 		v1, ok1 := p1()

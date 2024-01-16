@@ -13,6 +13,6 @@ type _Seq[T any] iter.Seq[T] // Type alias would be nice, but not supported for 
 // _Seq2 represents a two-value iterator.
 type _Seq2[T1, T2 any] iter.Seq2[T1, T2]
 
-func Pull[T any](seq iter.Seq[T]) (iterator func() (T, bool), stop func()) {
-	return iter.Pull[T](seq)
+func _Pull[T any](seq _Seq[T]) (iterator func() (T, bool), stop func()) {
+	return iter.Pull[T](iter.Seq[T](seq))
 }

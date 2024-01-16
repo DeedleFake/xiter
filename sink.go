@@ -130,9 +130,9 @@ func _Equal[T cmp.Ordered](seq1, seq2 _Seq[T]) bool {
 // _EqualFunc is like [Equal] but uses a custom comparison function to
 // determine the equivalence of the elements of each sequence.
 func _EqualFunc[T1, T2 any](seq1 _Seq[T1], seq2 _Seq[T2], equal func(T1, T2) bool) bool {
-	p1, stop := Pull(seq1)
+	p1, stop := _Pull(seq1)
 	defer stop()
-	p2, stop := Pull(seq2)
+	p2, stop := _Pull(seq2)
 	defer stop()
 
 	for {

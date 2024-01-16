@@ -14,6 +14,6 @@ type Seq[T any] _Seq[T]
 // Seq2 represents a two-value iterator.
 type Seq2[T1, T2 any] _Seq2[T1, T2]
 
-func Pull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
-	return _GoPull[T](_Seq[T](seq))
+func _Pull[T any](seq _Seq[T]) (iter func() (T, bool), stop func()) {
+	return _GoPull[T](seq)
 }
