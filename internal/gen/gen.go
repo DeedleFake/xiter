@@ -24,10 +24,12 @@ var (
 	outputTemplate string
 	tmpl           = template.Must(template.New("output").Funcs(funcMap).Parse(outputTemplate))
 	funcMap        = map[string]any{
-		"convertFuncName": convertFuncName,
 		"typeParamSlice":  listToSlice[*types.TypeParam],
 		"tupleSlice":      listToSlice[*types.Var],
+		"convertFuncName": convertFuncName,
 		"convertType":     convertType,
+		"convertArg":      convertArg,
+		"convertReturn":   convertReturn,
 	}
 )
 
@@ -91,6 +93,63 @@ func convertTypeName(rangefunc bool, name string) string {
 	}
 
 	return "iter." + cut
+}
+
+func convertArg(rangefunc bool, t types.Type, name string) string {
+	switch t := t.(type) {
+	case *types.Named:
+		if t.Obj().Pkg() == nil || t.Obj().Pkg().Path() != "deedles.dev/xiter" {
+			return name
+		}
+
+		tname := t.Obj().Name()
+		if !strings.HasPrefix(tname, "_") {
+			return name
+		}
+
+		if t.TypeArgs().Len() == 0 {
+			return fmt.Sprintf("%v(%v)", tname, name)
+		}
+
+		typeArgs := make([]string, 0, t.TypeArgs().Len())
+		for _, arg := range listToSlice(t.TypeArgs()) {
+			typeArgs = append(typeArgs, convertType(rangefunc, arg))
+		}
+		return fmt.Sprintf("%v[%v](%v)", tname, strings.Join(typeArgs, ","), name)
+
+	default:
+		return name
+	}
+}
+
+func convertReturn(rangefunc bool, t types.Type, name string) string {
+	switch t := t.(type) {
+	case *types.Named:
+		if t.Obj().Pkg() == nil || t.Obj().Pkg().Path() != "deedles.dev/xiter" {
+			return name
+		}
+
+		tname, ok := strings.CutPrefix(t.Obj().Name(), "_")
+		if !ok {
+			return name
+		}
+		if rangefunc {
+			tname = "iter." + tname
+		}
+
+		if t.TypeArgs().Len() == 0 {
+			return fmt.Sprintf("%v(%v)", tname, name)
+		}
+
+		typeArgs := make([]string, 0, t.TypeArgs().Len())
+		for _, arg := range listToSlice(t.TypeArgs()) {
+			typeArgs = append(typeArgs, convertType(rangefunc, arg))
+		}
+		return fmt.Sprintf("%v[%v](%v)", tname, strings.Join(typeArgs, ","), name)
+
+	default:
+		return name
+	}
 }
 
 func load() []*types.Func {

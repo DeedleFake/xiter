@@ -11,237 +11,296 @@ import (
 )
 
 func All[T any](seq Seq[T], f func(T) bool) bool {
-	return _All(seq, f)
+	_r0 := _All(_Seq[T](seq), f)
+	return _r0
 }
 
 func Any[T any](seq Seq[T], f func(T) bool) bool {
-	return _Any(seq, f)
+	_r0 := _Any(_Seq[T](seq), f)
+	return _r0
 }
 
 func AppendSplitTo[T1 any, T2 any](seq SplitSeq[T1, T2], s1 []T1, s2 []T2) ([]T1, []T2) {
-	return _AppendSplitTo(seq, s1, s2)
+	_r0, _r1 := _AppendSplitTo(seq, s1, s2)
+	return _r0, _r1
 }
 
 func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
-	return _AppendTo(seq, s)
+	_r0 := _AppendTo(_Seq[T](seq), s)
+	return _r0
 }
 
 func Bytes(s string) Seq[byte] {
-	return _Bytes(s)
+	_r0 := _Bytes(s)
+	return Seq[byte](_r0)
 }
 
 func Cache[T any](seq Seq[T]) Seq[T] {
-	return _Cache(seq)
+	_r0 := _Cache(_Seq[T](seq))
+	return Seq[T](_r0)
 }
 
 func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
-	return _Chunks(seq, n)
+	_r0 := _Chunks(_Seq[T](seq), n)
+	return Seq[[]T](_r0)
 }
 
 func Collect[T any](seq Seq[T]) []T {
-	return _Collect(seq)
+	_r0 := _Collect(_Seq[T](seq))
+	return _r0
 }
 
 func CollectSize[T any](seq Seq[T], len int) []T {
-	return _CollectSize(seq, len)
+	_r0 := _CollectSize(_Seq[T](seq), len)
+	return _r0
 }
 
 func CollectSplit[T1 any, T2 any](seq SplitSeq[T1, T2]) (y1 []T1, y2 []T2) {
-	return _CollectSplit(seq)
+	_r0, _r1 := _CollectSplit(seq)
+	return _r0, _r1
 }
 
 func Concat[T any](seqs []Seq[T]) Seq[T] {
-	return _Concat(seqs)
+	_r0 := _Concat(seqs)
+	return Seq[T](_r0)
 }
 
 func Contains[T comparable](seq Seq[T], v T) bool {
-	return _Contains(seq, v)
+	_r0 := _Contains(_Seq[T](seq), v)
+	return _r0
 }
 
 func Drain[T any](seq Seq[T]) {
-	return _Drain(seq)
+	_Drain(_Seq[T](seq))
+
 }
 
 func Enumerate[T any](seq Seq[T]) Seq2[int, T] {
-	return _Enumerate(seq)
+	_r0 := _Enumerate(_Seq[T](seq))
+	return Seq2[int, T](_r0)
 }
 
 func Equal[T cmp.Ordered](seq1 Seq[T], seq2 Seq[T]) bool {
-	return _Equal(seq1, seq2)
+	_r0 := _Equal(_Seq[T](seq1), _Seq[T](seq2))
+	return _r0
 }
 
 func EqualFunc[T1 any, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) bool {
-	return _EqualFunc(seq1, seq2, equal)
+	_r0 := _EqualFunc(_Seq[T1](seq1), _Seq[T2](seq2), equal)
+	return _r0
 }
 
 func Filter[T any](seq Seq[T], f func(T) bool) Seq[T] {
-	return _Filter(seq, f)
+	_r0 := _Filter(_Seq[T](seq), f)
+	return Seq[T](_r0)
 }
 
 func Find[T any](seq Seq[T], f func(T) bool) (r T, ok bool) {
-	return _Find(seq, f)
+	_r0, _r1 := _Find(_Seq[T](seq), f)
+	return _r0, _r1
 }
 
 func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
-	return _Flatten(seq)
+	_r0 := _Flatten(_Seq[Seq[T]](seq))
+	return Seq[T](_r0)
 }
 
 func Fold[T any](seq Seq[T], reducer func(T, T) T) T {
-	return _Fold(seq, reducer)
+	_r0 := _Fold(_Seq[T](seq), reducer)
+	return _r0
 }
 
 func FromPair[T1 any, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
-	return _FromPair(seq)
+	_r0 := _FromPair(_Seq[Pair[T1, T2]](seq))
+	return Seq2[T1, T2](_r0)
 }
 
 func Generate[T Addable](start T, step T) Seq[T] {
-	return _Generate(start, step)
+	_r0 := _Generate(start, step)
+	return Seq[T](_r0)
 }
 
 func GoPull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
-	return _GoPull(seq)
+	_r0, _r1 := _GoPull(_Seq[T](seq))
+	return _r0, _r1
 }
 
 func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
-	return _Handle(seq, f)
+	_r0 := _Handle(_Seq2[T, error](seq), f)
+	return Seq[T](_r0)
 }
 
 func IsSorted[T cmp.Ordered](seq Seq[T]) bool {
-	return _IsSorted(seq)
+	_r0 := _IsSorted(_Seq[T](seq))
+	return _r0
 }
 
 func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
-	return _IsSortedFunc(seq, compare)
+	_r0 := _IsSortedFunc(_Seq[T](seq), compare)
+	return _r0
 }
 
 func Limit[T any](seq Seq[T], n int) Seq[T] {
-	return _Limit(seq, n)
+	_r0 := _Limit(_Seq[T](seq), n)
+	return Seq[T](_r0)
 }
 
 func Map[T1 any, T2 any](seq Seq[T1], f func(T1) T2) Seq[T2] {
-	return _Map(seq, f)
+	_r0 := _Map(_Seq[T1](seq), f)
+	return Seq[T2](_r0)
 }
 
 func MapKeys[K comparable, V any, M ~map[K]V](m M) Seq[K] {
-	return _MapKeys(m)
+	_r0 := _MapKeys(m)
+	return Seq[K](_r0)
 }
 
 func MapValues[K comparable, V any, M ~map[K]V](m M) Seq[V] {
-	return _MapValues(m)
+	_r0 := _MapValues(m)
+	return Seq[V](_r0)
 }
 
 func Max[T cmp.Ordered](seq Seq[T]) T {
-	return _Max(seq)
+	_r0 := _Max(_Seq[T](seq))
+	return _r0
 }
 
 func Merge[T cmp.Ordered](seq1 Seq[T], seq2 Seq[T]) Seq[T] {
-	return _Merge(seq1, seq2)
+	_r0 := _Merge(_Seq[T](seq1), _Seq[T](seq2))
+	return Seq[T](_r0)
 }
 
 func MergeFunc[T any](seq1 Seq[T], seq2 Seq[T], compare func(T, T) int) Seq[T] {
-	return _MergeFunc(seq1, seq2, compare)
+	_r0 := _MergeFunc(_Seq[T](seq1), _Seq[T](seq2), compare)
+	return Seq[T](_r0)
 }
 
 func Min[T cmp.Ordered](seq Seq[T]) T {
-	return _Min(seq)
+	_r0 := _Min(_Seq[T](seq))
+	return _r0
 }
 
 func Of[T any](vals []T) Seq[T] {
-	return _Of(vals)
+	_r0 := _Of(vals)
+	return Seq[T](_r0)
 }
 
 func OfChan[T any](c <-chan T) Seq[T] {
-	return _OfChan(c)
+	_r0 := _OfChan(c)
+	return Seq[T](_r0)
 }
 
 func OfMap[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
-	return _OfMap(m)
+	_r0 := _OfMap(m)
+	return Seq2[K, V](_r0)
 }
 
 func OfSlice[T any, S ~[]T](s S) Seq[T] {
-	return _OfSlice(s)
+	_r0 := _OfSlice(s)
+	return Seq[T](_r0)
 }
 
 func OfSliceIndex[T any, S ~[]T](s S) Seq2[int, T] {
-	return _OfSliceIndex(s)
+	_r0 := _OfSliceIndex(s)
+	return Seq2[int, T](_r0)
 }
 
 func OfValue(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
-	return _OfValue(v)
+	_r0 := _OfValue(v)
+	return Seq2[reflect.Value, reflect.Value](_r0)
 }
 
 func Or[T any](seqs []Seq[T]) Seq[T] {
-	return _Or(seqs)
+	_r0 := _Or(seqs)
+	return Seq[T](_r0)
 }
 
 func Partition[T any](seq Seq[T], f func(T) bool) (true []T, false []T) {
-	return _Partition(seq, f)
+	_r0, _r1 := _Partition(_Seq[T](seq), f)
+	return _r0, _r1
 }
 
 func PartitionInto[T any](seq Seq[T], f func(T) bool, true []T, false []T) ([]T, []T) {
-	return _PartitionInto(seq, f, true, false)
+	_r0, _r1 := _PartitionInto(_Seq[T](seq), f, true, false)
+	return _r0, _r1
 }
 
 func Product[T Multiplyable](seq Seq[T]) T {
-	return _Product(seq)
+	_r0 := _Product(_Seq[T](seq))
+	return _r0
 }
 
 func Pull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
-	return _Pull(seq)
+	_r0, _r1 := _Pull(_Seq[T](seq))
+	return _r0, _r1
 }
 
 func RecvContext[T any](ctx context.Context, c <-chan T) Seq[T] {
-	return _RecvContext(ctx, c)
+	_r0 := _RecvContext(ctx, c)
+	return Seq[T](_r0)
 }
 
 func Reduce[T any, R any](seq Seq[T], initial R, reducer func(R, T) R) R {
-	return _Reduce(seq, initial, reducer)
+	_r0 := _Reduce(_Seq[T](seq), initial, reducer)
+	return _r0
 }
 
 func Runes[T ~[]byte | ~string](s T) Seq[rune] {
-	return _Runes(s)
+	_r0 := _Runes(s)
+	return Seq[rune](_r0)
 }
 
 func SendContext[T any](seq Seq[T], ctx context.Context, c chan<- T) {
-	return _SendContext(seq, ctx, c)
+	_SendContext(_Seq[T](seq), ctx, c)
+
 }
 
 func Skip[T any](seq Seq[T], n int) Seq[T] {
-	return _Skip(seq, n)
+	_r0 := _Skip(_Seq[T](seq), n)
+	return Seq[T](_r0)
 }
 
 func Split[T any](seq Seq[T], f func(T) bool) SplitSeq[T, T] {
-	return _Split(seq, f)
+	_r0 := _Split(_Seq[T](seq), f)
+	return _r0
 }
 
 func Split2[T1 any, T2 any](seq Seq2[T1, T2]) SplitSeq[T1, T2] {
-	return _Split2(seq)
+	_r0 := _Split2(_Seq2[T1, T2](seq))
+	return _r0
 }
 
 func StringSplit(s string, sep string) Seq[string] {
-	return _StringSplit(s, sep)
+	_r0 := _StringSplit(s, sep)
+	return Seq[string](_r0)
 }
 
 func Sum[T Addable](seq Seq[T]) T {
-	return _Sum(seq)
+	_r0 := _Sum(_Seq[T](seq))
+	return _r0
 }
 
 func ToPair[T1 any, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
-	return _ToPair(seq)
+	_r0 := _ToPair(_Seq2[T1, T2](seq))
+	return Seq[Pair[T1, T2]](_r0)
 }
 
 func V1[T1 any, T2 any](seq Seq2[T1, T2]) Seq[T1] {
-	return _V1(seq)
+	_r0 := _V1(_Seq2[T1, T2](seq))
+	return Seq[T1](_r0)
 }
 
 func V2[T1 any, T2 any](seq Seq2[T1, T2]) Seq[T2] {
-	return _V2(seq)
+	_r0 := _V2(_Seq2[T1, T2](seq))
+	return Seq[T2](_r0)
 }
 
 func Windows[T any](seq Seq[T], n int) Seq[[]T] {
-	return _Windows(seq, n)
+	_r0 := _Windows(_Seq[T](seq), n)
+	return Seq[[]T](_r0)
 }
 
 func Zip[T1 any, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
-	return _Zip(seq1, seq2)
+	_r0 := _Zip(_Seq[T1](seq1), _Seq[T2](seq2))
+	return Seq[Zipped[T1, T2]](_r0)
 }

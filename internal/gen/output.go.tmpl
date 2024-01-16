@@ -25,10 +25,11 @@ import (
 			{{- .Name}} {{.Type | convertType $.RangeFunc}},
 		{{- end -}}
 	) {
-		return {{.Name}}(
-			{{- range .Type.Params | tupleSlice}}
-				{{- .Name }},
+		{{with .Type.Results}}{{range $i, $_ := . | tupleSlice}}{{if ne $i 0}},{{end}}_r{{$i}}{{end}} := {{end}}{{.Name}}(
+			{{- range $i, $p := .Type.Params | tupleSlice}}
+				{{- .Name | convertArg $.RangeFunc $p.Type }},
 			{{- end -}}
 		)
+		{{with .Type.Results}}return {{range $i, $r := . | tupleSlice}}{{if ne $i 0}},{{end}}{{printf "_r%v" $i | convertReturn $.RangeFunc $r.Type}}{{end}}{{end}}
 	}
 {{end}}
