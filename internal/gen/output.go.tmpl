@@ -25,6 +25,10 @@ import (
 			{{- .Name}} {{.Type | convertType $.RangeFunc}},
 		{{- end -}}
 	) {
-		panic("Not implemented.")
+		return {{.Name}}(
+			{{- range .Type.Params | tupleSlice}}
+				{{- .Name }},
+			{{- end -}}
+		)
 	}
 {{end}}
