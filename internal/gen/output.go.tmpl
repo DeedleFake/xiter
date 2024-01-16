@@ -4,6 +4,26 @@
 
 package xiter
 
-{{range $func := .Funcs}}
-	func {{$func.Name | convertName}}() {}
+import (
+	"cmp"
+	"context"
+	"reflect"
+)
+
+{{range .Funcs}}
+	func {{.Name | convertName}}{{with .Type.TypeParams | typeParamSlice}}[
+		{{- range .}}
+			{{- .}} {{.Constraint | convertType $.RangeFunc}},
+		{{- end -}}
+	]{{end}}(
+		{{- range .Type.Params | tupleSlice}}
+			{{- .Name}} {{.Type | convertType $.RangeFunc}},
+		{{- end -}}
+	) (
+		{{- range .Type.Results | tupleSlice}}
+			{{- .Name}} {{.Type | convertType $.RangeFunc}},
+		{{- end -}}
+	) {
+		panic("Not implemented.")
+	}
 {{end}}
