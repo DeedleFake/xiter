@@ -10,111 +10,11 @@ import (
 	"reflect"
 )
 
-func Find[T any](seq _Seq[T], f func(T) bool) (r T, ok bool) {
+func All[T any](seq Seq[T], f func(T) bool) bool {
 	panic("Not implemented.")
 }
 
-func Chunks[T any](seq _Seq[T], n int) _Seq[[]T] {
-	panic("Not implemented.")
-}
-
-func All[T any](seq _Seq[T], f func(T) bool) bool {
-	panic("Not implemented.")
-}
-
-func OfMap[K comparable, V any, M ~map[K]V](m M) _Seq2[K, V] {
-	panic("Not implemented.")
-}
-
-func Enumerate[T any](seq _Seq[T]) _Seq2[int, T] {
-	panic("Not implemented.")
-}
-
-func Concat[T any](seqs []_Seq[T]) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func CollectSplit[T1 any, T2 any](seq SplitSeq[T1, T2]) (y1 []T1, y2 []T2) {
-	panic("Not implemented.")
-}
-
-func CollectSize[T any](seq _Seq[T], len int) []T {
-	panic("Not implemented.")
-}
-
-func AppendTo[T any, S ~[]T](seq _Seq[T], s S) S {
-	panic("Not implemented.")
-}
-
-func OfSlice[T any, S ~[]T](s S) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func Reduce[T any, R any](seq _Seq[T], initial R, reducer func(R, T) R) R {
-	panic("Not implemented.")
-}
-
-func Windows[T any](seq _Seq[T], n int) _Seq[[]T] {
-	panic("Not implemented.")
-}
-
-func Skip[T any](seq _Seq[T], n int) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func PartitionInto[T any](seq _Seq[T], f func(T) bool, true []T, false []T) ([]T, []T) {
-	panic("Not implemented.")
-}
-
-func SendContext[T any](seq _Seq[T], ctx context.Context, c chan<- T) {
-	panic("Not implemented.")
-}
-
-func Split[T any](seq _Seq[T], f func(T) bool) SplitSeq[T, T] {
-	panic("Not implemented.")
-}
-
-func ToPair[T1 any, T2 any](seq _Seq2[T1, T2]) _Seq[Pair[T1, T2]] {
-	panic("Not implemented.")
-}
-
-func Merge[T cmp.Ordered](seq1 _Seq[T], seq2 _Seq[T]) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func MergeFunc[T any](seq1 _Seq[T], seq2 _Seq[T], compare func(T, T) int) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func Sum[T Addable](seq _Seq[T]) T {
-	panic("Not implemented.")
-}
-
-func Equal[T cmp.Ordered](seq1 _Seq[T], seq2 _Seq[T]) bool {
-	panic("Not implemented.")
-}
-
-func Or[T any](seqs []_Seq[T]) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func OfChan[T any](c <-chan T) _Seq[T] {
-	panic("Not implemented.")
-}
-
-func Map[T1 any, T2 any](seq _Seq[T1], f func(T1) T2) _Seq[T2] {
-	panic("Not implemented.")
-}
-
-func Contains[T comparable](seq _Seq[T], v T) bool {
-	panic("Not implemented.")
-}
-
-func Split2[T1 any, T2 any](seq _Seq2[T1, T2]) SplitSeq[T1, T2] {
-	panic("Not implemented.")
-}
-
-func IsSortedFunc[T any](seq _Seq[T], compare func(T, T) int) bool {
+func Any[T any](seq Seq[T], f func(T) bool) bool {
 	panic("Not implemented.")
 }
 
@@ -122,126 +22,226 @@ func AppendSplitTo[T1 any, T2 any](seq SplitSeq[T1, T2], s1 []T1, s2 []T2) ([]T1
 	panic("Not implemented.")
 }
 
-func StringSplit(s string, sep string) _Seq[string] {
+func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
 	panic("Not implemented.")
 }
 
-func GoPull[T any](seq _Seq[T]) (iter func() (T, bool), stop func()) {
+func Bytes(s string) Seq[byte] {
 	panic("Not implemented.")
 }
 
-func Handle[T any](seq _Seq2[T, error], f func(error) bool) _Seq[T] {
+func Cache[T any](seq Seq[T]) Seq[T] {
 	panic("Not implemented.")
 }
 
-func MapKeys[K comparable, V any, M ~map[K]V](m M) _Seq[K] {
+func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 	panic("Not implemented.")
 }
 
-func OfValue(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
+func Collect[T any](seq Seq[T]) []T {
 	panic("Not implemented.")
 }
 
-func Any[T any](seq _Seq[T], f func(T) bool) bool {
+func CollectSize[T any](seq Seq[T], len int) []T {
 	panic("Not implemented.")
 }
 
-func Limit[T any](seq _Seq[T], n int) _Seq[T] {
+func CollectSplit[T1 any, T2 any](seq SplitSeq[T1, T2]) (y1 []T1, y2 []T2) {
 	panic("Not implemented.")
 }
 
-func Bytes(s string) _Seq[byte] {
+func Concat[T any](seqs []Seq[T]) Seq[T] {
 	panic("Not implemented.")
 }
 
-func Runes[T ~[]byte | ~string](s T) _Seq[rune] {
+func Contains[T comparable](seq Seq[T], v T) bool {
 	panic("Not implemented.")
 }
 
-func V1[T1 any, T2 any](seq _Seq2[T1, T2]) _Seq[T1] {
+func Drain[T any](seq Seq[T]) {
 	panic("Not implemented.")
 }
 
-func Drain[T any](seq _Seq[T]) {
+func Enumerate[T any](seq Seq[T]) Seq2[int, T] {
 	panic("Not implemented.")
 }
 
-func MapValues[K comparable, V any, M ~map[K]V](m M) _Seq[V] {
+func Equal[T cmp.Ordered](seq1 Seq[T], seq2 Seq[T]) bool {
 	panic("Not implemented.")
 }
 
-func IsSorted[T cmp.Ordered](seq _Seq[T]) bool {
+func EqualFunc[T1 any, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) bool {
 	panic("Not implemented.")
 }
 
-func Partition[T any](seq _Seq[T], f func(T) bool) (true []T, false []T) {
+func Filter[T any](seq Seq[T], f func(T) bool) Seq[T] {
 	panic("Not implemented.")
 }
 
-func Max[T cmp.Ordered](seq _Seq[T]) T {
+func Find[T any](seq Seq[T], f func(T) bool) (r T, ok bool) {
 	panic("Not implemented.")
 }
 
-func Fold[T any](seq _Seq[T], reducer func(T, T) T) T {
+func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
 	panic("Not implemented.")
 }
 
-func EqualFunc[T1 any, T2 any](seq1 _Seq[T1], seq2 _Seq[T2], equal func(T1, T2) bool) bool {
+func Fold[T any](seq Seq[T], reducer func(T, T) T) T {
 	panic("Not implemented.")
 }
 
-func Flatten[T any](seq _Seq[_Seq[T]]) _Seq[T] {
+func FromPair[T1 any, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
 	panic("Not implemented.")
 }
 
-func FromPair[T1 any, T2 any](seq _Seq[Pair[T1, T2]]) _Seq2[T1, T2] {
+func Generate[T Addable](start T, step T) Seq[T] {
 	panic("Not implemented.")
 }
 
-func Filter[T any](seq _Seq[T], f func(T) bool) _Seq[T] {
+func GoPull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
 	panic("Not implemented.")
 }
 
-func RecvContext[T any](ctx context.Context, c <-chan T) _Seq[T] {
+func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
 	panic("Not implemented.")
 }
 
-func Generate[T Addable](start T, step T) _Seq[T] {
+func IsSorted[T cmp.Ordered](seq Seq[T]) bool {
 	panic("Not implemented.")
 }
 
-func Min[T cmp.Ordered](seq _Seq[T]) T {
+func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
 	panic("Not implemented.")
 }
 
-func V2[T1 any, T2 any](seq _Seq2[T1, T2]) _Seq[T2] {
+func Limit[T any](seq Seq[T], n int) Seq[T] {
 	panic("Not implemented.")
 }
 
-func Product[T Multiplyable](seq _Seq[T]) T {
+func Map[T1 any, T2 any](seq Seq[T1], f func(T1) T2) Seq[T2] {
 	panic("Not implemented.")
 }
 
-func Cache[T any](seq _Seq[T]) _Seq[T] {
+func MapKeys[K comparable, V any, M ~map[K]V](m M) Seq[K] {
 	panic("Not implemented.")
 }
 
-func Collect[T any](seq _Seq[T]) []T {
+func MapValues[K comparable, V any, M ~map[K]V](m M) Seq[V] {
 	panic("Not implemented.")
 }
 
-func Of[T any](vals []T) _Seq[T] {
+func Max[T cmp.Ordered](seq Seq[T]) T {
 	panic("Not implemented.")
 }
 
-func Pull[T any](seq _Seq[T]) (iter func() (T, bool), stop func()) {
+func Merge[T cmp.Ordered](seq1 Seq[T], seq2 Seq[T]) Seq[T] {
 	panic("Not implemented.")
 }
 
-func OfSliceIndex[T any, S ~[]T](s S) _Seq2[int, T] {
+func MergeFunc[T any](seq1 Seq[T], seq2 Seq[T], compare func(T, T) int) Seq[T] {
 	panic("Not implemented.")
 }
 
-func Zip[T1 any, T2 any](seq1 _Seq[T1], seq2 _Seq[T2]) _Seq[Zipped[T1, T2]] {
+func Min[T cmp.Ordered](seq Seq[T]) T {
+	panic("Not implemented.")
+}
+
+func Of[T any](vals []T) Seq[T] {
+	panic("Not implemented.")
+}
+
+func OfChan[T any](c <-chan T) Seq[T] {
+	panic("Not implemented.")
+}
+
+func OfMap[K comparable, V any, M ~map[K]V](m M) Seq2[K, V] {
+	panic("Not implemented.")
+}
+
+func OfSlice[T any, S ~[]T](s S) Seq[T] {
+	panic("Not implemented.")
+}
+
+func OfSliceIndex[T any, S ~[]T](s S) Seq2[int, T] {
+	panic("Not implemented.")
+}
+
+func OfValue(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+	panic("Not implemented.")
+}
+
+func Or[T any](seqs []Seq[T]) Seq[T] {
+	panic("Not implemented.")
+}
+
+func Partition[T any](seq Seq[T], f func(T) bool) (true []T, false []T) {
+	panic("Not implemented.")
+}
+
+func PartitionInto[T any](seq Seq[T], f func(T) bool, true []T, false []T) ([]T, []T) {
+	panic("Not implemented.")
+}
+
+func Product[T Multiplyable](seq Seq[T]) T {
+	panic("Not implemented.")
+}
+
+func Pull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
+	panic("Not implemented.")
+}
+
+func RecvContext[T any](ctx context.Context, c <-chan T) Seq[T] {
+	panic("Not implemented.")
+}
+
+func Reduce[T any, R any](seq Seq[T], initial R, reducer func(R, T) R) R {
+	panic("Not implemented.")
+}
+
+func Runes[T ~[]byte | ~string](s T) Seq[rune] {
+	panic("Not implemented.")
+}
+
+func SendContext[T any](seq Seq[T], ctx context.Context, c chan<- T) {
+	panic("Not implemented.")
+}
+
+func Skip[T any](seq Seq[T], n int) Seq[T] {
+	panic("Not implemented.")
+}
+
+func Split[T any](seq Seq[T], f func(T) bool) SplitSeq[T, T] {
+	panic("Not implemented.")
+}
+
+func Split2[T1 any, T2 any](seq Seq2[T1, T2]) SplitSeq[T1, T2] {
+	panic("Not implemented.")
+}
+
+func StringSplit(s string, sep string) Seq[string] {
+	panic("Not implemented.")
+}
+
+func Sum[T Addable](seq Seq[T]) T {
+	panic("Not implemented.")
+}
+
+func ToPair[T1 any, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
+	panic("Not implemented.")
+}
+
+func V1[T1 any, T2 any](seq Seq2[T1, T2]) Seq[T1] {
+	panic("Not implemented.")
+}
+
+func V2[T1 any, T2 any](seq Seq2[T1, T2]) Seq[T2] {
+	panic("Not implemented.")
+}
+
+func Windows[T any](seq Seq[T], n int) Seq[[]T] {
+	panic("Not implemented.")
+}
+
+func Zip[T1 any, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 	panic("Not implemented.")
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	_ "embed"
 	"fmt"
 	"go/format"
@@ -9,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -22,14 +24,14 @@ var (
 	outputTemplate string
 	tmpl           = template.Must(template.New("output").Funcs(funcMap).Parse(outputTemplate))
 	funcMap        = map[string]any{
-		"convertName":    convertName,
-		"typeParamSlice": listToSlice[*types.TypeParam],
-		"tupleSlice":     listToSlice[*types.Var],
-		"convertType":    convertType,
+		"convertFuncName": convertFuncName,
+		"typeParamSlice":  listToSlice[*types.TypeParam],
+		"tupleSlice":      listToSlice[*types.Var],
+		"convertType":     convertType,
 	}
 )
 
-func convertName(name string) string {
+func convertFuncName(name string) string {
 	return strings.TrimPrefix(name, "_")
 }
 
@@ -55,15 +57,17 @@ func convertType(rangefunc bool, t types.Type) string {
 			pkg = t.Obj().Pkg().Name() + "."
 		}
 
+		name := convertTypeName(rangefunc, t.Obj().Name())
+
 		if t.TypeArgs().Len() == 0 {
-			return pkg + t.Obj().Name()
+			return pkg + name
 		}
 
 		typeArgs := make([]string, 0, t.TypeArgs().Len())
 		for _, arg := range listToSlice(t.TypeArgs()) {
 			typeArgs = append(typeArgs, convertType(rangefunc, arg))
 		}
-		return fmt.Sprintf("%v%v[%v]", pkg, t.Obj().Name(), strings.Join(typeArgs, ","))
+		return fmt.Sprintf("%v%v[%v]", pkg, name, strings.Join(typeArgs, ","))
 
 	case *types.Slice:
 		return fmt.Sprintf("[]%v", convertType(rangefunc, t.Elem()))
@@ -76,14 +80,17 @@ func convertType(rangefunc bool, t types.Type) string {
 	}
 }
 
-func join[T any](sep string, s []T) string {
-	var i string
-	var buf strings.Builder
-	for _, v := range s {
-		fmt.Fprintf(&buf, "%v%v", i, v)
-		i = sep
+func convertTypeName(rangefunc bool, name string) string {
+	cut, ok := strings.CutPrefix(name, "_")
+	if !ok {
+		return name
 	}
-	return buf.String()
+
+	if !rangefunc {
+		return cut
+	}
+
+	return "iter." + cut
 }
 
 func load() []*types.Func {
@@ -106,6 +113,7 @@ func load() []*types.Func {
 
 		funcs = append(funcs, f)
 	}
+	slices.SortFunc(funcs, func(f1, f2 *types.Func) int { return cmp.Compare(f1.Name(), f2.Name()) })
 
 	return funcs
 }

@@ -8,10 +8,11 @@ import (
 	"cmp"
 	"context"
 	"reflect"
+	{{if .RangeFunc}}"iter"{{end}}
 )
 
 {{range .Funcs}}
-	func {{.Name | convertName}}{{with .Type.TypeParams | typeParamSlice}}[
+	func {{.Name | convertFuncName}}{{with .Type.TypeParams | typeParamSlice}}[
 		{{- range .}}
 			{{- .}} {{.Constraint | convertType $.RangeFunc}},
 		{{- end -}}
