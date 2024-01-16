@@ -26,7 +26,7 @@ func (p Pair[T1, T2]) Split() (T1, T2) {
 	return p.V1, p.V2
 }
 
-// GoPull simulates a pull-iterator using Go's built-in concurrency
+// _GoPull simulates a pull-iterator using Go's built-in concurrency
 // primitives in lieu of coroutines. It handles all synchronization
 // internally, so, despite running the iterator in a new thread, there
 // shouldn't be any data races, but there is some performance
@@ -34,7 +34,7 @@ func (p Pair[T1, T2]) Split() (T1, T2) {
 //
 // The returned stop function must be called when the iterator is no
 // longer in use.
-func GoPull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
+func _GoPull[T any](seq _Seq[T]) (iter func() (T, bool), stop func()) {
 	next := make(chan struct{})
 	yield := make(chan T)
 

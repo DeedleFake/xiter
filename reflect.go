@@ -5,11 +5,11 @@ import (
 	"reflect"
 )
 
-// OfValue returns a Seq2 that iterates over any iterable type using
+// _OfValue returns a Seq2 that iterates over any iterable type using
 // reflection. If the type is one which only produces a single value
 // per iteration, such as a channel, the second value yielded each
 // iteration will just be reflect.Value{}.
-func OfValue(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func _OfValue(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	switch v.Kind() {
 	case reflect.Array, reflect.Slice:
 		return ofValueIndexable(v)
@@ -34,7 +34,7 @@ func OfValue(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	panic(fmt.Errorf("not rangeable type: %v", v.Type()))
 }
 
-func ofValueIndexable(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func ofValueIndexable(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	return func(yield func(v1, v2 reflect.Value) bool) {
 		for i := 0; i < v.Len(); i++ {
 			if !yield(reflect.ValueOf(i), v.Index(i)) {
@@ -45,14 +45,14 @@ func ofValueIndexable(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	}
 }
 
-func ofValueString(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
-	return FromPair(Map(ToPair(Enumerate(Runes(v.String()))),
+func ofValueString(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
+	return _FromPair(_Map(_ToPair(_Enumerate(_Runes(v.String()))),
 		func(v Pair[int, rune]) Pair[reflect.Value, reflect.Value] {
 			return P(reflect.ValueOf(v.V1), reflect.ValueOf(v.V2))
 		}))
 }
 
-func ofValueChan(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func ofValueChan(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	var zero reflect.Value
 	return func(yield func(v1, v2 reflect.Value) bool) {
 		for {
@@ -67,7 +67,7 @@ func ofValueChan(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	}
 }
 
-func ofValueMap(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func ofValueMap(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	return func(yield func(v1, v2 reflect.Value) bool) {
 		iter := v.MapRange()
 		defer iter.Reset(reflect.Value{})
@@ -80,7 +80,7 @@ func ofValueMap(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	}
 }
 
-func ofValuePointerToArray(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func ofValuePointerToArray(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	sv := v.Elem()
 	if !sv.IsValid() {
 		return func(func(v1, v2 reflect.Value) bool) { return }
@@ -111,7 +111,7 @@ func isValueSeq(v reflect.Value) bool {
 	return true
 }
 
-func ofValueFunc(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func ofValueFunc(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	return func(yield func(v1, v2 reflect.Value) bool) {
 		yv := reflect.MakeFunc(v.Type().In(0), func(vals []reflect.Value) []reflect.Value {
 			v1, v2 := vals[0], reflect.Value{}
@@ -125,7 +125,7 @@ func ofValueFunc(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
 	}
 }
 
-func ofValueInt(v reflect.Value) Seq2[reflect.Value, reflect.Value] {
+func ofValueInt(v reflect.Value) _Seq2[reflect.Value, reflect.Value] {
 	inc := func(v reflect.Value) reflect.Value { return reflect.ValueOf(v.Int() + 1) }
 	if v.CanInt() && v.Int() < 0 {
 		panic(fmt.Errorf("%v < 0", v.Int()))

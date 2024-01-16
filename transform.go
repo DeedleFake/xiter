@@ -2,8 +2,8 @@ package xiter
 
 import "cmp"
 
-// Map returns a Seq that yields the values of seq transformed via f.
-func Map[T1, T2 any](seq Seq[T1], f func(T1) T2) Seq[T2] {
+// _Map returns a Seq that yields the values of seq transformed via f.
+func _Map[T1, T2 any](seq _Seq[T1], f func(T1) T2) _Seq[T2] {
 	return func(yield func(T2) bool) {
 		seq(func(v T1) bool {
 			return yield(f(v))
@@ -11,9 +11,9 @@ func Map[T1, T2 any](seq Seq[T1], f func(T1) T2) Seq[T2] {
 	}
 }
 
-// Filter returns a Seq that yields only the values of seq for which
+// _Filter returns a Seq that yields only the values of seq for which
 // f(value) returns true.
-func Filter[T any](seq Seq[T], f func(T) bool) Seq[T] {
+func _Filter[T any](seq _Seq[T], f func(T) bool) _Seq[T] {
 	return func(yield func(T) bool) {
 		seq(func(v T) bool {
 			if !f(v) {
@@ -24,9 +24,9 @@ func Filter[T any](seq Seq[T], f func(T) bool) Seq[T] {
 	}
 }
 
-// Skip returns a Seq that skips over the first n elements of seq and
+// _Skip returns a Seq that skips over the first n elements of seq and
 // then yields the rest normally.
-func Skip[T any](seq Seq[T], n int) Seq[T] {
+func _Skip[T any](seq _Seq[T], n int) _Seq[T] {
 	return func(yield func(T) bool) {
 		seq(func(v T) bool {
 			if n > 0 {
@@ -38,7 +38,7 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 	}
 }
 
-// Handle splits seq by calling f for any non-nil errors yielded by
+// _Handle splits seq by calling f for any non-nil errors yielded by
 // seq. If f returns false, iteration stops. If an iteration's error
 // is nil or f returns true, the other value is yielded by the
 // returned Seq.
@@ -46,7 +46,7 @@ func Skip[T any](seq Seq[T], n int) Seq[T] {
 // TODO: This is significantly less useful than it could be. For
 // example, there's no way to tell it to skip the yield but continue
 // iteration anyways.
-func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
+func _Handle[T any](seq _Seq2[T, error], f func(error) bool) _Seq[T] {
 	return func(yield func(T) bool) {
 		seq(func(v T, err error) bool {
 			if err != nil {
@@ -57,8 +57,8 @@ func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
 	}
 }
 
-// Limit returns a Seq that yields at most n values from seq.
-func Limit[T any](seq Seq[T], n int) Seq[T] {
+// _Limit returns a Seq that yields at most n values from seq.
+func _Limit[T any](seq _Seq[T], n int) _Seq[T] {
 	return func(yield func(T) bool) {
 		seq(func(v T) bool {
 			if !yield(v) {
@@ -70,17 +70,17 @@ func Limit[T any](seq Seq[T], n int) Seq[T] {
 	}
 }
 
-// Concat creates a new Seq that yields the values of each of the
+// _Concat creates a new Seq that yields the values of each of the
 // provided Seqs in turn.
-func Concat[T any](seqs ...Seq[T]) Seq[T] {
-	return Flatten(OfSlice(seqs))
+func _Concat[T any](seqs ..._Seq[T]) _Seq[T] {
+	return _Flatten(_OfSlice(seqs))
 }
 
-// Flatten yields all of the elements of each Seq yielded from seq in
+// _Flatten yields all of the elements of each Seq yielded from seq in
 // turn.
-func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
+func _Flatten[T any](seq _Seq[_Seq[T]]) _Seq[T] {
 	return func(yield func(T) bool) {
-		seq(func(s Seq[T]) bool {
+		seq(func(s _Seq[T]) bool {
 			s(yield)
 			return true
 		})
@@ -97,9 +97,9 @@ type Zipped[T1, T2 any] struct {
 	OK2 bool
 }
 
-// Zip returns a new Seq that yields the values of seq1 and seq2
+// _Zip returns a new Seq that yields the values of seq1 and seq2
 // simultaneously.
-func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
+func _Zip[T1, T2 any](seq1 _Seq[T1], seq2 _Seq[T2]) _Seq[Zipped[T1, T2]] {
 	return func(yield func(Zipped[T1, T2]) bool) {
 		p1, stop := Pull(seq1)
 		defer stop()
@@ -117,16 +117,16 @@ func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 	}
 }
 
-// Merge returns a sequence that yields values from the ordered
+// _Merge returns a sequence that yields values from the ordered
 // sequences seq1 and seq2 one at a time to produce a new ordered
 // sequence made up of all of the elements of both seq1 and seq2.
-func Merge[T cmp.Ordered](seq1, seq2 Seq[T]) Seq[T] {
-	return MergeFunc(seq1, seq2, cmp.Compare)
+func _Merge[T cmp.Ordered](seq1, seq2 _Seq[T]) _Seq[T] {
+	return _MergeFunc(seq1, seq2, cmp.Compare)
 }
 
-// MergeFunc is like [Merge], but uses a custom comparison function
+// _MergeFunc is like [Merge], but uses a custom comparison function
 // for determining the order of values.
-func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
+func _MergeFunc[T any](seq1, seq2 _Seq[T], compare func(T, T) int) _Seq[T] {
 	return func(yield func(T) bool) {
 		p1, stop := Pull(seq1)
 		defer stop()
@@ -165,10 +165,10 @@ func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
 	}
 }
 
-// Windows returns a slice over successive overlapping portions of
+// _Windows returns a slice over successive overlapping portions of
 // size n of the values yielded by seq. In other words,
 //
-//	Windows(Generate(0, 1), 3)
+//	_Windows(Generate(0, 1), 3)
 //
 // will yield
 //
@@ -180,7 +180,7 @@ func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
 // next, so it should not be held onto after each iteration has ended.
 // [Map] and [slices.Clone] may come in handy for dealing with
 // situations where this is necessary.
-func Windows[T any](seq Seq[T], n int) Seq[[]T] {
+func _Windows[T any](seq _Seq[T], n int) _Seq[[]T] {
 	return func(yield func([]T) bool) {
 		win := make([]T, 0, n)
 
@@ -205,10 +205,10 @@ func Windows[T any](seq Seq[T], n int) Seq[[]T] {
 	}
 }
 
-// Chunks works just like [Windows] except that the yielded slices of
+// _Chunks works just like [Windows] except that the yielded slices of
 // elements do not overlap. In other words,
 //
-//	Chunks(Generate(0, 1), 3)
+//	_Chunks(Generate(0, 1), 3)
 //
 // will yield
 //
@@ -217,7 +217,7 @@ func Windows[T any](seq Seq[T], n int) Seq[[]T] {
 //	[6, 7, 8]
 //
 // Like with Windows, the slice is reused between iterations.
-func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
+func _Chunks[T any](seq _Seq[T], n int) _Seq[[]T] {
 	return func(yield func([]T) bool) {
 		win := make([]T, 0, n)
 
@@ -247,10 +247,10 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 	}
 }
 
-// Split returns a SplitSeq which yields the values of seq for which
+// _Split returns a SplitSeq which yields the values of seq for which
 // f(value) is true to its first yield function and the rest to its
 // second.
-func Split[T any](seq Seq[T], f func(T) bool) SplitSeq[T, T] {
+func _Split[T any](seq _Seq[T], f func(T) bool) SplitSeq[T, T] {
 	return func(true, false func(T) bool) {
 		seq(func(v T) bool {
 			y := false
@@ -262,9 +262,9 @@ func Split[T any](seq Seq[T], f func(T) bool) SplitSeq[T, T] {
 	}
 }
 
-// Split2 transforms a Seq2 into a SplitSeq. Every iteration of the
+// _Split2 transforms a Seq2 into a SplitSeq. Every iteration of the
 // Seq2 yields both values via the SplitSeq.
-func Split2[T1, T2 any](seq Seq2[T1, T2]) SplitSeq[T1, T2] {
+func _Split2[T1, T2 any](seq _Seq2[T1, T2]) SplitSeq[T1, T2] {
 	return func(y1 func(T1) bool, y2 func(T2) bool) {
 		seq(func(v1 T1, v2 T2) bool {
 			return y1(v1) && y2(v2)
@@ -272,15 +272,15 @@ func Split2[T1, T2 any](seq Seq2[T1, T2]) SplitSeq[T1, T2] {
 	}
 }
 
-// Cache returns a Seq that can be iterated more than once. On the
+// _Cache returns a Seq that can be iterated more than once. On the
 // first iteration, it yields the values from seq and caches them. On
 // subsequent iterations, it yields the cached values from the first
 // iteration.
-func Cache[T any](seq Seq[T]) Seq[T] {
+func _Cache[T any](seq _Seq[T]) _Seq[T] {
 	var cache []T
 	return func(yield func(T) bool) {
 		if cache != nil {
-			OfSlice(cache)(yield)
+			_OfSlice(cache)(yield)
 			return
 		}
 
@@ -292,9 +292,9 @@ func Cache[T any](seq Seq[T]) Seq[T] {
 	}
 }
 
-// Enumerate returns a Seq2 that counts the number of iterations of
+// _Enumerate returns a Seq2 that counts the number of iterations of
 // seq as it yields elements from it, starting at 0.
-func Enumerate[T any](seq Seq[T]) Seq2[int, T] {
+func _Enumerate[T any](seq _Seq[T]) _Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		i := -1
 		seq(func(v T) bool {
@@ -304,12 +304,12 @@ func Enumerate[T any](seq Seq[T]) Seq2[int, T] {
 	}
 }
 
-// Or yields all of the values from the first Seq which yields at
+// _Or yields all of the values from the first Seq which yields at
 // least one value and then stops.
-func Or[T any](seqs ...Seq[T]) Seq[T] {
-	ss := Filter(OfSlice(seqs), func(s Seq[T]) bool { return s != nil })
+func _Or[T any](seqs ..._Seq[T]) _Seq[T] {
+	ss := _Filter(_OfSlice(seqs), func(s _Seq[T]) bool { return s != nil })
 	return func(yield func(T) bool) {
-		ss(func(seq Seq[T]) bool {
+		ss(func(seq _Seq[T]) bool {
 			cont := true
 			seq(func(v T) bool {
 				cont = false
