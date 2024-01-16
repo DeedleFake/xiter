@@ -4,6 +4,8 @@ package xiter
 
 import "sync"
 
+//go:generate go run ./internal/gen
+
 // A SplitSeq is like a Seq but can yield via either of two functions.
 // It might not be useful, but is included anyways because it might
 // be.
