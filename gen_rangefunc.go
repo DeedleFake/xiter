@@ -7,6 +7,7 @@ package xiter
 import (
 	"cmp"
 	"context"
+	"deedles.dev/xiter/internal/xslices"
 	"iter"
 	"reflect"
 )
@@ -62,7 +63,7 @@ func CollectSplit[T1 any, T2 any](seq SplitSeq[T1, T2]) (y1 []T1, y2 []T2) {
 }
 
 func Concat[T any](seqs []iter.Seq[T]) iter.Seq[T] {
-	_r0 := _Concat(seqs)
+	_r0 := _Concat(xslices.Map(seqs, func(v Seq[T]) _Seq[T] { return _Seq[T](v) })...)
 	return iter.Seq[T](_r0)
 }
 
@@ -102,7 +103,7 @@ func Find[T any](seq iter.Seq[T], f func(T) bool) (r T, ok bool) {
 }
 
 func Flatten[T any](seq iter.Seq[iter.Seq[T]]) iter.Seq[T] {
-	_r0 := _Flatten(_Seq[iter.Seq[T]](seq))
+	_r0 := _Flatten(_Seq[_Seq[T]](seq))
 	return iter.Seq[T](_r0)
 }
 
@@ -182,7 +183,7 @@ func Min[T cmp.Ordered](seq iter.Seq[T]) T {
 }
 
 func Of[T any](vals []T) iter.Seq[T] {
-	_r0 := _Of(vals)
+	_r0 := _Of(vals...)
 	return iter.Seq[T](_r0)
 }
 
@@ -212,7 +213,7 @@ func OfValue(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 }
 
 func Or[T any](seqs []iter.Seq[T]) iter.Seq[T] {
-	_r0 := _Or(seqs)
+	_r0 := _Or(xslices.Map(seqs, func(v Seq[T]) _Seq[T] { return _Seq[T](v) })...)
 	return iter.Seq[T](_r0)
 }
 

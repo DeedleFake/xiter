@@ -9,9 +9,10 @@ import (
 	"context"
 	"reflect"
 	{{if .RangeFunc}}"iter"{{end}}
+	"deedles.dev/xiter/internal/xslices"
 )
 
-{{range .Funcs}}
+{{range $func := .Funcs}}
 	func {{.Name | convertFuncName}}{{with .Type.TypeParams | typeParamSlice}}[
 		{{- range .}}
 			{{- .}} {{.Constraint | convertType $.RangeFunc}},
@@ -27,7 +28,7 @@ import (
 	) {
 		{{with .Type.Results}}{{range $i, $_ := . | tupleSlice}}{{if ne $i 0}},{{end}}_r{{$i}}{{end}} := {{end}}{{.Name}}(
 			{{- range $i, $p := .Type.Params | tupleSlice}}
-				{{- .Name | convertArg $.RangeFunc $p.Type }},
+				{{- .Name | convertArg $.RangeFunc $p.Type }}{{if $func.Type.Variadic}}...{{end}},
 			{{- end -}}
 		)
 		{{with .Type.Results}}return {{range $i, $r := . | tupleSlice}}{{if ne $i 0}},{{end}}{{printf "_r%v" $i | convertReturn $.RangeFunc $r.Type}}{{end}}{{end}}

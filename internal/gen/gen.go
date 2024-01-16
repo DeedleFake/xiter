@@ -95,27 +95,47 @@ func convertTypeName(rangefunc bool, name string) string {
 	return "iter." + cut
 }
 
+func convertArgType(rangefunc bool, t types.Type) (from string, to string, ok bool) {
+	switch t := t.(type) {
+	case *types.Named:
+		to := t.Obj().Name()
+
+		if t.Obj().Pkg() == nil || t.Obj().Pkg().Path() != "deedles.dev/xiter" {
+			return t.String(), t.String(), false
+		}
+
+		if t.TypeArgs().Len() != 0 {
+			typeArgs := make([]string, 0, t.TypeArgs().Len())
+			for _, arg := range listToSlice(t.TypeArgs()) {
+				_, to, _ := convertArgType(rangefunc, arg)
+				typeArgs = append(typeArgs, to)
+			}
+			to = fmt.Sprintf("%v[%v]", to, strings.Join(typeArgs, ","))
+		}
+
+		from, ok := strings.CutPrefix(to, "_")
+		return from, to, ok
+
+	default:
+		return t.String(), t.String(), false
+	}
+}
+
 func convertArg(rangefunc bool, t types.Type, name string) string {
 	switch t := t.(type) {
 	case *types.Named:
-		if t.Obj().Pkg() == nil || t.Obj().Pkg().Path() != "deedles.dev/xiter" {
+		_, to, ok := convertArgType(rangefunc, t)
+		if !ok {
 			return name
 		}
+		return fmt.Sprintf("%v(%v)", to, name)
 
-		tname := t.Obj().Name()
-		if !strings.HasPrefix(tname, "_") {
+	case *types.Slice:
+		from, to, ok := convertArgType(rangefunc, t.Elem())
+		if !ok {
 			return name
 		}
-
-		if t.TypeArgs().Len() == 0 {
-			return fmt.Sprintf("%v(%v)", tname, name)
-		}
-
-		typeArgs := make([]string, 0, t.TypeArgs().Len())
-		for _, arg := range listToSlice(t.TypeArgs()) {
-			typeArgs = append(typeArgs, convertType(rangefunc, arg))
-		}
-		return fmt.Sprintf("%v[%v](%v)", tname, strings.Join(typeArgs, ","), name)
+		return fmt.Sprintf("xslices.Map(%v, func(v %v) %v { return %v(v) })", name, from, to, to)
 
 	default:
 		return name
