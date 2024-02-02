@@ -75,6 +75,8 @@ func convertType(rangefunc bool, variadic bool, t types.Type) string {
 	case *types.Slice:
 		ct := convertType(rangefunc, false, t.Elem())
 		if variadic {
+			// TODO: Only do this if it's the last argument. Probably should
+			// be done in the template.
 			return fmt.Sprintf("...%v", ct)
 		}
 		return fmt.Sprintf("[]%v", ct)
@@ -100,43 +102,46 @@ func convertTypeName(rangefunc bool, name string) string {
 	return "iter." + cut
 }
 
-func convertArgType(rangefunc bool, t types.Type) (from string, to string, ok bool) {
+func convertArgType(rangefunc bool, t types.Type) (from string, to string, unsafe bool, ok bool) {
 	switch t := t.(type) {
 	case *types.Named:
 		to := t.Obj().Name()
 
 		if t.Obj().Pkg() == nil || t.Obj().Pkg().Path() != "deedles.dev/xiter" {
-			return t.String(), t.String(), false
+			return t.String(), t.String(), false, false
 		}
 
 		if t.TypeArgs().Len() != 0 {
 			typeArgs := make([]string, 0, t.TypeArgs().Len())
 			for _, arg := range listToSlice(t.TypeArgs()) {
-				_, to, _ := convertArgType(rangefunc, arg)
+				_, to, _, _ := convertArgType(rangefunc, arg)
 				typeArgs = append(typeArgs, to)
 			}
 			to = fmt.Sprintf("%v[%v]", to, strings.Join(typeArgs, ","))
 		}
 
 		from, ok := strings.CutPrefix(to, "_")
-		return from, to, ok
+		return from, to, t.TypeArgs().Len() != 0, ok
 
 	default:
-		return t.String(), t.String(), false
+		return t.String(), t.String(), false, false
 	}
 }
 
 func convertArg(rangefunc bool, t types.Type, name string) string {
 	switch t := t.(type) {
 	case *types.Named:
-		_, to, ok := convertArgType(rangefunc, t)
+		_, to, unsafe, ok := convertArgType(rangefunc, t)
 		if !ok {
 			return name
 		}
-		return fmt.Sprintf("%v(%v)", to, name)
+		if !unsafe {
+			return fmt.Sprintf("%v(%v)", to, name)
+		}
+		return fmt.Sprintf("*(*%v)(unsafe.Pointer(&%v))", to, name)
 
 	case *types.Slice:
-		_, to, ok := convertArgType(rangefunc, t.Elem())
+		_, to, _, ok := convertArgType(rangefunc, t.Elem())
 		if !ok {
 			return name
 		}
