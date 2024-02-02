@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"cmp"
 	_ "embed"
+	"flag"
 	"fmt"
 	"go/format"
 	"go/types"
@@ -51,7 +52,7 @@ func listToSlice[T any](list List[T]) []T {
 	return s
 }
 
-func convertType(rangefunc bool, t types.Type) string {
+func convertType(rangefunc bool, variadic bool, t types.Type) string {
 	switch t := t.(type) {
 	case *types.Named:
 		var pkg string
@@ -67,12 +68,16 @@ func convertType(rangefunc bool, t types.Type) string {
 
 		typeArgs := make([]string, 0, t.TypeArgs().Len())
 		for _, arg := range listToSlice(t.TypeArgs()) {
-			typeArgs = append(typeArgs, convertType(rangefunc, arg))
+			typeArgs = append(typeArgs, convertType(rangefunc, false, arg))
 		}
 		return fmt.Sprintf("%v%v[%v]", pkg, name, strings.Join(typeArgs, ","))
 
 	case *types.Slice:
-		return fmt.Sprintf("[]%v", convertType(rangefunc, t.Elem()))
+		ct := convertType(rangefunc, false, t.Elem())
+		if variadic {
+			return fmt.Sprintf("...%v", ct)
+		}
+		return fmt.Sprintf("[]%v", ct)
 
 	case *types.Interface, *types.Basic, *types.TypeParam, *types.Signature, *types.Chan:
 		return t.String()
@@ -131,11 +136,11 @@ func convertArg(rangefunc bool, t types.Type, name string) string {
 		return fmt.Sprintf("%v(%v)", to, name)
 
 	case *types.Slice:
-		from, to, ok := convertArgType(rangefunc, t.Elem())
+		_, to, ok := convertArgType(rangefunc, t.Elem())
 		if !ok {
 			return name
 		}
-		return fmt.Sprintf("xslices.Map(%v, func(v %v) %v { return %v(v) })", name, from, to, to)
+		return fmt.Sprintf("*(*[]%v)(unsafe.Pointer(&%v))", to, name)
 
 	default:
 		return name
@@ -163,7 +168,7 @@ func convertReturn(rangefunc bool, t types.Type, name string) string {
 
 		typeArgs := make([]string, 0, t.TypeArgs().Len())
 		for _, arg := range listToSlice(t.TypeArgs()) {
-			typeArgs = append(typeArgs, convertType(rangefunc, arg))
+			typeArgs = append(typeArgs, convertType(rangefunc, false, arg))
 		}
 		return fmt.Sprintf("%v[%v](%v)", tname, strings.Join(typeArgs, ","), name)
 
@@ -172,7 +177,7 @@ func convertReturn(rangefunc bool, t types.Type, name string) string {
 	}
 }
 
-func load() []*types.Func {
+func load(ignore []string) []*types.Func {
 	config := packages.Config{Mode: packages.NeedTypes | packages.NeedTypesInfo}
 	pkgs, err := packages.Load(&config, "deedles.dev/xiter")
 	if err != nil {
@@ -184,6 +189,9 @@ func load() []*types.Func {
 	for _, def := range pkg.TypesInfo.Defs {
 		f, ok := def.(*types.Func)
 		if !ok {
+			continue
+		}
+		if slices.Contains(ignore, f.Name()) {
 			continue
 		}
 		if !namePattern.MatchString(f.Name()) {
@@ -224,7 +232,10 @@ func write(name string, funcs []*types.Func, rangefunc bool) {
 }
 
 func main() {
-	funcs := load()
+	ignore := flag.String("ignore", "", "comma-separated list of declarations to ignore")
+	flag.Parse()
+
+	funcs := load(strings.Split(*ignore, ","))
 	write("gen_rangefunc.go", funcs, true)
 	write("gen_norangefunc.go", funcs, false)
 }
