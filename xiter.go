@@ -1,24 +1,13 @@
 // Package xiter provides iterator-related functionality compatible
-// with, but not requiring, CL 510541.
+// with, but not requiring, Go 1.22 and GOEXPERIMENT=rangefunc.
 package xiter
 
 import "sync"
-
-// Seq represents an iterator over a sequence of values. When called,
-// the passed yield function is called for each successive value.
-// Returning false from yield causes the iterator to stop, equivalent
-// to a break statement. The return value of the Seq function itself
-// is completely ignored, but present to be compatible with the CL
-// 510541 prototype.
-type Seq[T any] func(yield func(T) bool)
 
 // A SplitSeq is like a Seq but can yield via either of two functions.
 // It might not be useful, but is included anyways because it might
 // be.
 type SplitSeq[T1, T2 any] func(y1 func(T1) bool, y2 func(T2) bool)
-
-// Seq2 represents a two-value iterator.
-type Seq2[T1, T2 any] func(yield func(T1, T2) bool)
 
 // Pair contains two values of arbitrary types.
 type Pair[T1, T2 any] struct {
@@ -37,7 +26,7 @@ func (p Pair[T1, T2]) Split() (T1, T2) {
 	return p.V1, p.V2
 }
 
-// Pull simulates a pull-iterator using Go's built-in concurrency
+// GoPull simulates a pull-iterator using Go's built-in concurrency
 // primitives in lieu of coroutines. It handles all synchronization
 // internally, so, despite running the iterator in a new thread, there
 // shouldn't be any data races, but there is some performance
@@ -45,7 +34,7 @@ func (p Pair[T1, T2]) Split() (T1, T2) {
 //
 // The returned stop function must be called when the iterator is no
 // longer in use.
-func Pull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
+func GoPull[T any](seq Seq[T]) (iter func() (T, bool), stop func()) {
 	next := make(chan struct{})
 	yield := make(chan T)
 
