@@ -23,6 +23,48 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func TestFilterMap(t *testing.T) {
+	s := OfSlice([]int{1, 2, 3})
+	n := Collect(FilterMap(s, func(v int) float64 {
+		if v%2 != 0 {
+			return float64(v * 2)
+		}
+
+		return 0
+	}))
+	if [2]float64(n) != [...]float64{2, 6} {
+		t.Fatal(n)
+	}
+}
+
+func TestFilterMapPtr(t *testing.T) {
+	type Foo struct{}
+	type Bar struct{}
+
+	s := Of[any](new(Foo), new(Bar), new(Foo), new(Bar))
+	n := Collect(FilterMap(s, func(v any) *Foo {
+		foo, _ := v.(*Foo)
+		return foo
+	}))
+	if len(n) != 2 {
+		t.Fatal(n)
+	}
+}
+
+func TestFilterMap2(t *testing.T) {
+	type Foo struct{}
+	type Bar struct{}
+
+	s := Of[any](new(Foo), new(Bar), new(Foo), new(Bar))
+	n := Collect(FilterMap2(s, func(v any) (*Foo, bool) {
+		foo, ok := v.(*Foo)
+		return foo, ok
+	}))
+	if len(n) != 2 {
+		t.Fatal(n)
+	}
+}
+
 func TestSkip(t *testing.T) {
 	s := Collect(Skip(Limit(Generate(
 		0, 1),
