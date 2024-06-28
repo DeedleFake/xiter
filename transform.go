@@ -101,19 +101,35 @@ type Zipped[T1, T2 any] struct {
 // simultaneously.
 func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 	return func(yield func(Zipped[T1, T2]) bool) {
-		p1, stop := Pull(seq1)
-		defer stop()
-		p2, stop := Pull(seq2)
-		defer stop()
+		p2, stop2 := Pull(seq2)
+		defer stop2()
+		done := false
 
-		for {
+		f := func(v T1) bool {
 			var val Zipped[T1, T2]
-			val.V1, val.OK1 = p1()
+			val.V1, val.OK1 = v, true
 			val.V2, val.OK2 = p2()
-			if (!val.OK1 && !val.OK2) || !yield(val) {
+			if !yield(val) {
+				done = true
+				return false
+			}
+			return true
+		}
+		seq1(f)
+		if done {
+			return
+		}
+		// seq1 is exhausted
+		for v2, ok2 := p2(); ok2; v2, ok2 = p2() {
+			var v1 T1
+			var val Zipped[T1, T2]
+			val.V1, val.OK1 = v1, false
+			val.V2, val.OK2 = v2, true
+			if !yield(val) {
 				return
 			}
 		}
+		return
 	}
 }
 
