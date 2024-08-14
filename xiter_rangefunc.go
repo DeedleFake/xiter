@@ -1,4 +1,4 @@
-//go:build goexperiment.rangefunc
+//go:build goexperiment.rangefunc || go1.23
 
 package xiter
 

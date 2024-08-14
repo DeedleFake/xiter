@@ -1,5 +1,5 @@
 // Package xiter provides iterator-related functionality compatible
-// with, but not requiring, Go 1.22 and GOEXPERIMENT=rangefunc.
+// with, but not requiring, Go 1.23.
 package xiter
 
 import "sync"
