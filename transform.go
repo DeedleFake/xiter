@@ -84,8 +84,12 @@ func Concat[T any](seqs ...Seq[T]) Seq[T] {
 func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
 	return func(yield func(T) bool) {
 		seq(func(s Seq[T]) bool {
-			s(yield)
-			return true
+			cont := true
+			s(func(v T) bool {
+				cont = yield(v)
+				return cont
+			})
+			return cont
 		})
 		return
 	}
