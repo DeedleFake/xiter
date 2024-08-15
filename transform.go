@@ -91,7 +91,6 @@ func Flatten[T any](seq Seq[Seq[T]]) Seq[T] {
 			})
 			return cont
 		})
-		return
 	}
 }
 

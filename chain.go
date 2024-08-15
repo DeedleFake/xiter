@@ -2,12 +2,9 @@ package xiter
 
 import (
 	"context"
-	"slices"
 )
 
 // Chain is a wrapper around a Seq that provides what functionality of this package it's possible to provide as methods, allowing calls to them to be chained. As a general rule of thumb, methods that are available are ones that don't introduce new type parameters, though a few others are missing as well.
-//
-// Note as well that methods that take variadic arguments, such as [Concat], are slightly less efficient to use this way, as they need to build a new slice that includes the receiver as well.
 type Chain[T any] Seq[T]
 
 func (chain Chain[T]) Seq() Seq[T] { return Seq[T](chain) }
@@ -46,8 +43,25 @@ func (chain Chain[T]) Cache() Chain[T] { return Chain[T](Cache[T](chain.Seq())) 
 //func (chain Chain[T]) Chunks(n int) Chain[[]T] { return Chain[[]T](Chunks[T](chain.Seq(), n)) }
 
 func (chain Chain[T]) Concat(seqs ...Seq[T]) Chain[T] {
-	// TODO: Replace with a custom implementation that's more efficient.
-	return Chain[T](Concat[T](slices.Insert(slices.Clip(seqs), 0, chain.Seq())...))
+	return func(yield func(T) bool) {
+		cont := true
+		wrap := func(v T) bool {
+			cont = yield(v)
+			return cont
+		}
+
+		chain(wrap)
+		if !cont {
+			return
+		}
+
+		for _, seq := range seqs {
+			seq(wrap)
+			if !cont {
+				return
+			}
+		}
+	}
 }
 
 func (chain Chain[T]) Filter(f func(T) bool) Chain[T] { return Chain[T](Filter(chain.Seq(), f)) }
@@ -59,8 +73,31 @@ func (chain Chain[T]) MergeFunc(seq2 Seq[T], compare func(T, T) int) Chain[T] {
 }
 
 func (chain Chain[T]) Or(seqs ...Seq[T]) Chain[T] {
-	// TODO: Replace with a custom implementation that's more efficient.
-	return Chain[T](Or[T](slices.Insert(slices.Clip(seqs), 0, chain.Seq())...))
+	return func(yield func(T) bool) {
+		cont := true
+		wrap := func(v T) bool {
+			cont = false
+			return yield(v)
+		}
+
+		if chain != nil {
+			chain(wrap)
+			if !cont {
+				return
+			}
+		}
+
+		for _, seq := range seqs {
+			if seq == nil {
+				continue
+			}
+
+			seq(wrap)
+			if !cont {
+				return
+			}
+		}
+	}
 }
 
 func (chain Chain[T]) Skip(n int) Chain[T] { return Chain[T](Skip[T](chain.Seq(), n)) }

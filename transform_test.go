@@ -49,6 +49,11 @@ func TestConcat(t *testing.T) {
 	if [6]int(s) != [...]int{1, 2, 3, 3, 2, 5} {
 		t.Fatal(s)
 	}
+
+	s = Chain[int](OfSlice([]int{1, 2, 3})).Concat(OfSlice([]int{3, 2, 5})).Collect()
+	if [6]int(s) != [...]int{1, 2, 3, 3, 2, 5} {
+		t.Fatal(s)
+	}
 }
 
 func TestZip(t *testing.T) {
@@ -188,6 +193,11 @@ func TestEnumerate(t *testing.T) {
 
 func TestOr(t *testing.T) {
 	s := Collect(Or(Of[int](), nil, Of(1, 2, 3), Of(4, 5, 6)))
+	if !slices.Equal(s, []int{1, 2, 3}) {
+		t.Fatal(s)
+	}
+
+	s = Chain[int](Of[int]()).Or(nil, Of(1, 2, 3), Of(4, 5, 6)).Collect()
 	if !slices.Equal(s, []int{1, 2, 3}) {
 		t.Fatal(s)
 	}
