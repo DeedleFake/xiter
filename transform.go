@@ -1,6 +1,9 @@
 package xiter
 
-import "cmp"
+import (
+	"cmp"
+	"slices"
+)
 
 // Map returns a Seq that yields the values of seq transformed via f.
 func Map[T1, T2 any](seq Seq[T1], f func(T1) T2) Seq[T2] {
@@ -244,6 +247,50 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 			yield(win)
 		}
 		return
+	}
+}
+
+// ChunksFunc is like [Chunks], except chunk boundaries are determined
+// by calling chunker on successive elements. When the return value of
+// the function changes from the previous call, a new chunk is started.
+//
+// Like with Chunks, the slice is reused between iterations.
+func ChunksFunc[T any, C comparable](seq Seq[T], chunker func(T) C) Seq[[]T] {
+	return func(yield func([]T) bool) {
+		next, stop := Pull(seq)
+		defer stop()
+
+		cur, ok := next()
+		if !ok {
+			return
+		}
+		prev := chunker(cur)
+		win := []T{cur}
+
+		for {
+			cur, ok := next()
+			if !ok {
+				if len(win) != 0 {
+					yield(win)
+				}
+				return
+			}
+
+			check := chunker(cur)
+			if check == prev {
+				win = append(win, cur)
+				continue
+			}
+
+			if !yield(slices.Clip(win)) {
+				return
+			}
+			clear(win)
+			win = win[:1]
+			win[0] = cur
+
+			prev = check
+		}
 	}
 }
 

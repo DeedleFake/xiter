@@ -143,6 +143,16 @@ func TestChunks(t *testing.T) {
 	}
 }
 
+func TestChunksFunc(t *testing.T) {
+	s := Collect(Map(ChunksFunc(OfSlice([]int{0, 0, 0, 0, 1, 0, 1, 1, 0, 1}),
+		func(v int) bool { return v%2 == 0 }),
+		slices.Clone),
+	)
+	if !slices.EqualFunc(s, [][]int{{0, 0, 0, 0}, {1}, {0}, {1, 1}, {0}, {1}}, slices.Equal) {
+		t.Fatal(s)
+	}
+}
+
 func TestSplit2(t *testing.T) {
 	s1, s2 := CollectSplit(Split2(FromPair(OfSlice([]Pair[int32, int64]{{1, 2}, {3, 4}, {5, 6}}))))
 	if !slices.Equal(s1, []int32{1, 3, 5}) {
