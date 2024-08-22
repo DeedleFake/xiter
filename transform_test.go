@@ -151,7 +151,7 @@ func TestChunks(t *testing.T) {
 func TestChunksFunc(t *testing.T) {
 	s := Collect(Map(ChunksFunc(OfSlice([]int{0, 0, 0, 0, 1, 0, 1, 1, 0, 1}),
 		func(v int) bool { return v%2 == 0 }),
-		slices.Clone),
+		Collect),
 	)
 	if !slices.EqualFunc(s, [][]int{{0, 0, 0, 0}, {1}, {0}, {1, 1}, {0}, {1}}, slices.Equal) {
 		t.Fatal(s)

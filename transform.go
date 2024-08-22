@@ -2,7 +2,6 @@ package xiter
 
 import (
 	"cmp"
-	"slices"
 )
 
 // Map returns a Seq that yields the values of seq transformed via f.
@@ -257,9 +256,11 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 // by calling chunker on successive elements. When the return value of
 // the function changes from the previous call, a new chunk is started.
 //
-// Like with Chunks, the slice is reused between iterations.
-func ChunksFunc[T any, C comparable](seq Seq[T], chunker func(T) C) Seq[[]T] {
-	return func(yield func([]T) bool) {
+// Each yielded chunk must be iterated before continuing iteration of
+// the Seq returned by this function. Failing to do so will result in
+// a panic.
+func ChunksFunc[T any, C comparable](seq Seq[T], chunker func(T) C) Seq[Seq[T]] {
+	return func(yield func(Seq[T]) bool) {
 		next, stop := Pull(seq)
 		defer stop()
 
@@ -268,31 +269,40 @@ func ChunksFunc[T any, C comparable](seq Seq[T], chunker func(T) C) Seq[[]T] {
 			return
 		}
 		prev := chunker(cur)
-		win := []T{cur}
 
-		for {
-			cur, ok := next()
+		var safe bool
+		chunk := func(yield func(T) bool) {
+			safe = true
+
+			ok = yield(cur)
 			if !ok {
-				if len(win) != 0 {
-					yield(win)
+				return
+			}
+
+			for {
+				cur, ok = next()
+				if !ok {
+					return
 				}
-				return
-			}
 
-			check := chunker(cur)
-			if check == prev {
-				win = append(win, cur)
-				continue
-			}
+				if check := chunker(cur); check != prev {
+					prev = check
+					return
+				}
 
-			if !yield(slices.Clip(win)) {
-				return
+				ok = yield(cur)
+				if !ok {
+					return
+				}
 			}
-			clear(win)
-			win = win[:1]
-			win[0] = cur
+		}
 
-			prev = check
+		for ok {
+			ok = yield(chunk)
+			if !safe {
+				panic("yielded chunk not used")
+			}
+			safe = false
 		}
 	}
 }
