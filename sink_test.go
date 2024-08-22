@@ -103,3 +103,15 @@ func FuzzSendRecvContext(f *testing.F) {
 		}
 	})
 }
+
+func TestDrain(t *testing.T) {
+	v, ok := Drain(Of(3, 2, 5))
+	if !ok || v != 5 {
+		t.Fatalf("%v, %v", v, ok)
+	}
+
+	v, ok = Drain(Of[int]())
+	if ok || v != 0 {
+		t.Fatalf("%v, %v", v, ok)
+	}
+}

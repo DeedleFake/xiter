@@ -147,10 +147,15 @@ func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) 
 	}
 }
 
-// Drain empties seq, discarding every single value and returning once
-// it's finished.
-func Drain[T any](seq Seq[T]) {
-	seq(func(T) bool { return true })
+// Drain empties seq, returning the last value yielded. If no values
+// are yielded, ok will be false.
+func Drain[T any](seq Seq[T]) (v T, ok bool) {
+	seq(func(val T) bool {
+		v = val
+		ok = true
+		return true
+	})
+	return v, ok
 }
 
 // CollectSplit is like [Collect], but for a SplitSeq.
