@@ -3,6 +3,7 @@ package xiter
 import (
 	"context"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -91,6 +92,45 @@ func StringSplit(s, sep string) Seq[string] {
 				return
 			}
 			s = s[m+len(sep):]
+		}
+	}
+}
+
+// StringFields returns an iterator over the substrings of s that are
+// seperated by consecutive whitespace as determined by
+// [unicode.IsSpace]. It is very similar to [strings.Fields].
+func StringFields(s string) Seq[string] {
+	return StringFieldsFunc(s, unicode.IsSpace)
+}
+
+// StringFieldsFunc returns an iterator over the substrings of s that
+// are seperated by consecutive sections of runes for which sep
+// returns true. It behaves very similarly to [strings.FieldsFunc].
+func StringFieldsFunc(s string, sep func(rune) bool) Seq[string] {
+	return func(yield func(string) bool) {
+		start := 0
+		for i, r := range Enumerate(Runes(s)) {
+			if !sep(r) {
+				continue
+			}
+
+			field := s[start:i]
+			start = i + 1
+			if field == "" {
+				continue
+			}
+			if !yield(field) {
+				return
+			}
+
+		}
+
+		field := s[start:]
+		if field == "" {
+			return
+		}
+		if !yield(field) {
+			return
 		}
 	}
 }

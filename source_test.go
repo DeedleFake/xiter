@@ -48,3 +48,15 @@ func TestStringSplit(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestStringFields(t *testing.T) {
+	s := Collect(StringFields("  this is a  test "))
+	if !slices.Equal(s, []string{"this", "is", "a", "test"}) {
+		t.Fatal(s)
+	}
+
+	s = Collect(StringFields("  this is a  test"))
+	if !slices.Equal(s, []string{"this", "is", "a", "test"}) {
+		t.Fatal(s)
+	}
+}
