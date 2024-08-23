@@ -3,6 +3,7 @@ package xiter
 import (
 	"cmp"
 	"context"
+	"maps"
 	"slices"
 	"testing"
 )
@@ -22,7 +23,7 @@ func TestRunes(t *testing.T) {
 }
 
 func TestMapEntries(t *testing.T) {
-	s := Collect(ToPair(OfMap(map[string]string{"this": "is", "a": "test"})))
+	s := Collect(ToPair(maps.All(map[string]string{"this": "is", "a": "test"})))
 	slices.SortFunc(s, func(e1, e2 Pair[string, string]) int { return cmp.Compare(e1.V1, e2.V2) })
 	if [2]Pair[string, string](s) != [...]Pair[string, string]{{"a", "test"}, {"this", "is"}} {
 		t.Fatal(s)

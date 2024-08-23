@@ -3,6 +3,7 @@ package xiter
 import (
 	"context"
 	"iter"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -26,26 +27,7 @@ func Generate[T Addable](start, step T) iter.Seq[T] {
 
 // Of returns a Seq that yields the provided values.
 func Of[T any](vals ...T) iter.Seq[T] {
-	return OfSlice(vals)
-}
-
-// OfSlice returns a Seq over the elements of s. It is equivalent to
-// range s with the index ignored.
-func OfSlice[T any, S ~[]T](s S) iter.Seq[T] {
-	return V2(OfSliceIndex(s))
-}
-
-// OfSliceIndex returns a Seq over the elements of s. It is equivalent
-// to range s.
-func OfSliceIndex[T any, S ~[]T](s S) iter.Seq2[int, T] {
-	return func(yield func(int, T) bool) {
-		for i, v := range s {
-			if !yield(i, v) {
-				return
-			}
-		}
-		return
-	}
+	return slices.Values(vals)
 }
 
 // Bytes returns a Seq over the bytes of s.
@@ -134,28 +116,6 @@ func StringFieldsFunc(s string, sep func(rune) bool) iter.Seq[string] {
 			return
 		}
 	}
-}
-
-// OfMap returns a Seq over the key-value pairs of m.
-func OfMap[K comparable, V any, M ~map[K]V](m M) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
-		for k, v := range m {
-			if !yield(k, v) {
-				return
-			}
-		}
-		return
-	}
-}
-
-// MapKeys returns a Seq over the keys of m.
-func MapKeys[K comparable, V any, M ~map[K]V](m M) iter.Seq[K] {
-	return V1(OfMap(m))
-}
-
-// MapValues returns a Seq over the values of m.
-func MapValues[K comparable, V any, M ~map[K]V](m M) iter.Seq[V] {
-	return V2(OfMap(m))
 }
 
 // ToPair takes a two-value iterator and produces a single-value

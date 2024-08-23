@@ -77,7 +77,7 @@ func Limit[T any](seq iter.Seq[T], n int) iter.Seq[T] {
 // Concat creates a new Seq that yields the values of each of the
 // provided Seqs in turn.
 func Concat[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
-	return Flatten(OfSlice(seqs))
+	return Flatten(slices.Values(seqs))
 }
 
 // Flatten yields all of the elements of each Seq yielded from seq in
@@ -331,7 +331,7 @@ func Cache[T any](seq iter.Seq[T]) iter.Seq[T] {
 	var cache []T
 	return func(yield func(T) bool) {
 		if cache != nil {
-			OfSlice(cache)(yield)
+			slices.Values(cache)(yield)
 			return
 		}
 
@@ -358,7 +358,7 @@ func Enumerate[T any](seq iter.Seq[T]) iter.Seq2[int, T] {
 // Or yields all of the values from the first Seq which yields at
 // least one value and then stops.
 func Or[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
-	ss := Filter(OfSlice(seqs), func(s iter.Seq[T]) bool { return s != nil })
+	ss := Filter(slices.Values(seqs), func(s iter.Seq[T]) bool { return s != nil })
 	return func(yield func(T) bool) {
 		ss(func(seq iter.Seq[T]) bool {
 			cont := true
