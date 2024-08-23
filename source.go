@@ -175,3 +175,38 @@ func RecvContext[T any](ctx context.Context, c <-chan T) iter.Seq[T] {
 		}
 	}
 }
+
+// SliceChunksFunc is like [ChunksFunc] but operates on a slice
+// instead of an [iter.Seq]. When dealing with data that is in a
+// slice, this is more effecient than using ChunksFunc as it can yield
+// subslices of the underlying slice instead of having to allocate a
+// moving window. The yielded subslices have their capacity clipped.
+func SliceChunksFunc[T any, C comparable, S ~[]T](s S, chunker func(T) C) iter.Seq[S] {
+	return func(yield func(S) bool) {
+		if len(s) == 0 {
+			return
+		}
+
+		prev := chunker(s[0])
+		var start int
+		for i := 1; i < len(s); i++ {
+			v := s[i]
+			cur := chunker(v)
+			if cur == prev {
+				continue
+			}
+
+			if !yield(slices.Clip(s[start:i])) {
+				return
+			}
+			prev, start = cur, i
+		}
+
+		last := s[start:]
+		if len(last) != 0 {
+			if !yield(slices.Clip(last)) {
+				return
+			}
+		}
+	}
+}

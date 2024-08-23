@@ -61,3 +61,10 @@ func TestStringFields(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestSliceChunkBy(t *testing.T) {
+	s := slices.Collect(SliceChunksFunc([]int{-1, -2, -3, 1, 2, 3, -1, -2, 3}, func(v int) int { return cmp.Compare(v, 0) }))
+	if !slices.EqualFunc(s, [][]int{{-1, -2, -3}, {1, 2, 3}, {-1, -2}, {3}}, slices.Equal) {
+		t.Fatal(s)
+	}
+}
