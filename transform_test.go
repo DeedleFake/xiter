@@ -10,7 +10,7 @@ import (
 
 func TestMap(t *testing.T) {
 	s := slices.Values([]int{1, 2, 3})
-	n := Collect(Map(s, func(v int) float64 { return float64(v * 2) }))
+	n := slices.Collect(Map(s, func(v int) float64 { return float64(v * 2) }))
 	if [3]float64(n) != [...]float64{2, 4, 6} {
 		t.Fatal(n)
 	}
@@ -18,14 +18,14 @@ func TestMap(t *testing.T) {
 
 func TestFilter(t *testing.T) {
 	s := slices.Values([]int{1, 2, 3})
-	n := Collect(Filter(s, func(v int) bool { return v%2 != 0 }))
+	n := slices.Collect(Filter(s, func(v int) bool { return v%2 != 0 }))
 	if [2]int(n) != [...]int{1, 3} {
 		t.Fatal(n)
 	}
 }
 
 func TestSkip(t *testing.T) {
-	s := Collect(Skip(Limit(Generate(
+	s := slices.Collect(Skip(Limit(Generate(
 		0, 1),
 		3),
 		2),
@@ -36,7 +36,7 @@ func TestSkip(t *testing.T) {
 }
 
 func TestLimit(t *testing.T) {
-	s := Collect(Limit(Generate(
+	s := slices.Collect(Limit(Generate(
 		0, 2),
 		3),
 	)
@@ -46,7 +46,7 @@ func TestLimit(t *testing.T) {
 }
 
 func TestConcat(t *testing.T) {
-	s := Collect(Concat(slices.Values([]int{1, 2, 3}), slices.Values([]int{3, 2, 5})))
+	s := slices.Collect(Concat(slices.Values([]int{1, 2, 3}), slices.Values([]int{3, 2, 5})))
 	if [6]int(s) != [...]int{1, 2, 3, 3, 2, 5} {
 		t.Fatal(s)
 	}
@@ -98,7 +98,7 @@ func TestIsSorted(t *testing.T) {
 func TestMerge(t *testing.T) {
 	s1 := slices.Values([]int{2, 3, 5})
 	s2 := slices.Values([]int{1, 2, 3, 4, 5})
-	r := Collect(Merge(s1, s2))
+	r := slices.Collect(Merge(s1, s2))
 	if [8]int(r) != [...]int{1, 2, 2, 3, 3, 4, 5, 5} {
 		t.Fatal(r)
 	}
@@ -115,7 +115,7 @@ func splitmerge[T cmp.Ordered](s []T) iter.Seq[T] {
 }
 
 func mergesort[T cmp.Ordered](s []T) {
-	AppendTo(splitmerge(s), s[:0])
+	slices.AppendSeq(s[:0], splitmerge(s))
 }
 
 func TestMergeSort(t *testing.T) {
@@ -140,7 +140,7 @@ func FuzzMergeSort(f *testing.F) {
 }
 
 func TestChunks(t *testing.T) {
-	s := Collect(Map(Chunks(slices.Values([]int{1, 2, 3, 4, 5}),
+	s := slices.Collect(Map(Chunks(slices.Values([]int{1, 2, 3, 4, 5}),
 		2),
 		slices.Clone),
 	)
@@ -150,7 +150,7 @@ func TestChunks(t *testing.T) {
 }
 
 func TestChunksFunc(t *testing.T) {
-	s := Collect(Map(ChunksFunc(slices.Values([]int{0, 0, 0, 0, 1, 0, 1, 1, 0, 1}),
+	s := slices.Collect(Map(ChunksFunc(slices.Values([]int{0, 0, 0, 0, 1, 0, 1, 1, 0, 1}),
 		func(v int) bool { return v%2 == 0 }),
 		slices.Clone),
 	)
@@ -177,23 +177,23 @@ func TestCache(t *testing.T) {
 		return
 	}
 	seq := Cache(f)
-	if s := Collect(seq); !slices.Equal(s, []int{0}) {
+	if s := slices.Collect(seq); !slices.Equal(s, []int{0}) {
 		t.Fatal(s)
 	}
-	if s := Collect(seq); !slices.Equal(s, []int{0}) {
+	if s := slices.Collect(seq); !slices.Equal(s, []int{0}) {
 		t.Fatal(s)
 	}
 }
 
 func TestEnumerate(t *testing.T) {
-	s := Collect(ToPair(Enumerate(Limit(Generate(0, 2), 3))))
+	s := slices.Collect(ToPair(Enumerate(Limit(Generate(0, 2), 3))))
 	if !slices.Equal(s, []Pair[int, int]{{0, 0}, {1, 2}, {2, 4}}) {
 		t.Fatal(s)
 	}
 }
 
 func TestOr(t *testing.T) {
-	s := Collect(Or(Of[int](), nil, Of(1, 2, 3), Of(4, 5, 6)))
+	s := slices.Collect(Or(Of[int](), nil, Of(1, 2, 3), Of(4, 5, 6)))
 	if !slices.Equal(s, []int{1, 2, 3}) {
 		t.Fatal(s)
 	}

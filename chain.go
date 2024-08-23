@@ -3,6 +3,7 @@ package xiter
 import (
 	"context"
 	"iter"
+	"slices"
 )
 
 // Chain is a wrapper around a iter.Seq that provides what
@@ -18,7 +19,7 @@ func (chain Chain[T]) All(f func(T) bool) bool { return All(chain.Seq(), f) }
 
 func (chain Chain[T]) Any(f func(T) bool) bool { return Any(chain.Seq(), f) }
 
-func (chain Chain[T]) Collect() []T { return Collect[T](chain.Seq()) }
+func (chain Chain[T]) Collect() []T { return slices.Collect[T](chain.Seq()) }
 
 func (chain Chain[T]) CollectSize(len int) []T { return CollectSize[T](chain.Seq(), len) }
 

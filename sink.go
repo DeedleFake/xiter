@@ -4,26 +4,13 @@ import (
 	"cmp"
 	"context"
 	"iter"
+	"slices"
 )
-
-// AppendTo appends the values of seq to s, returning the new slice.
-func AppendTo[T any, S ~[]T](seq iter.Seq[T], s S) S {
-	seq(func(v T) bool {
-		s = append(s, v)
-		return true
-	})
-	return s
-}
-
-// Collect returns a slice of the elements of seq.
-func Collect[T any](seq iter.Seq[T]) []T {
-	return CollectSize(seq, 0)
-}
 
 // CollectSize pre-allocates the slice being collected into to the
 // given size. It is provided purely for convenience.
 func CollectSize[T any](seq iter.Seq[T], len int) []T {
-	return AppendTo(seq, make([]T, 0, len))
+	return slices.AppendSeq(make([]T, 0, len), seq)
 }
 
 // Find returns the first value of seq for which f(value) returns
