@@ -3,10 +3,11 @@ package xiter
 import (
 	"cmp"
 	"context"
+	"iter"
 )
 
 // AppendTo appends the values of seq to s, returning the new slice.
-func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
+func AppendTo[T any, S ~[]T](seq iter.Seq[T], s S) S {
 	seq(func(v T) bool {
 		s = append(s, v)
 		return true
@@ -15,19 +16,19 @@ func AppendTo[T any, S ~[]T](seq Seq[T], s S) S {
 }
 
 // Collect returns a slice of the elements of seq.
-func Collect[T any](seq Seq[T]) []T {
+func Collect[T any](seq iter.Seq[T]) []T {
 	return CollectSize(seq, 0)
 }
 
 // CollectSize pre-allocates the slice being collected into to the
 // given size. It is provided purely for convenience.
-func CollectSize[T any](seq Seq[T], len int) []T {
+func CollectSize[T any](seq iter.Seq[T], len int) []T {
 	return AppendTo(seq, make([]T, 0, len))
 }
 
 // Find returns the first value of seq for which f(value) returns
 // true.
-func Find[T any](seq Seq[T], f func(T) bool) (r T, ok bool) {
+func Find[T any](seq iter.Seq[T], f func(T) bool) (r T, ok bool) {
 	seq(func(v T) bool {
 		if !f(v) {
 			return true
@@ -40,19 +41,19 @@ func Find[T any](seq Seq[T], f func(T) bool) (r T, ok bool) {
 }
 
 // Contains returns true if v is an element of seq.
-func Contains[T comparable](seq Seq[T], v T) bool {
+func Contains[T comparable](seq iter.Seq[T], v T) bool {
 	_, ok := Find(seq, func(e T) bool { return v == e })
 	return ok
 }
 
 // Any returns true if f(element) is true for any elements of seq.
-func Any[T any](seq Seq[T], f func(T) bool) bool {
+func Any[T any](seq iter.Seq[T], f func(T) bool) bool {
 	_, ok := Find(seq, f)
 	return ok
 }
 
 // All returns true if f(element) is true for every element of seq.
-func All[T any](seq Seq[T], f func(T) bool) bool {
+func All[T any](seq iter.Seq[T], f func(T) bool) bool {
 	return !Any(seq, f)
 }
 
@@ -65,7 +66,7 @@ func All[T any](seq Seq[T], f func(T) bool) bool {
 // powerful. For example, a simple summation of values can be done as
 //
 //	sum := Reduce(seq, 0, func(total, v int) int { return total + v })
-func Reduce[T, R any](seq Seq[T], initial R, reducer func(R, T) R) R {
+func Reduce[T, R any](seq iter.Seq[T], initial R, reducer func(R, T) R) R {
 	seq(func(v T) bool {
 		initial = reducer(initial, v)
 		return true
@@ -76,7 +77,7 @@ func Reduce[T, R any](seq Seq[T], initial R, reducer func(R, T) R) R {
 // Fold performs a [Reduce] but uses the first value yielded by seq
 // instead of a provided initial value. If seq doesn't yield any
 // values, the zero value of T is returned.
-func Fold[T any](seq Seq[T], reducer func(T, T) T) T {
+func Fold[T any](seq iter.Seq[T], reducer func(T, T) T) T {
 	var prev T
 	r := func(v1, v2 T) T { return v2 }
 	seq(func(v T) bool {
@@ -89,25 +90,25 @@ func Fold[T any](seq Seq[T], reducer func(T, T) T) T {
 
 // Sum returns the values of seq added together in the order that they
 // are yielded.
-func Sum[T Addable](seq Seq[T]) T {
+func Sum[T Addable](seq iter.Seq[T]) T {
 	return Fold(seq, func(total, v T) T { return total + v })
 }
 
 // Product returns the values of seq multiplied together. It returns
 // 1 if no values are yielded.
-func Product[T Multiplyable](seq Seq[T]) T {
+func Product[T Multiplyable](seq iter.Seq[T]) T {
 	return Reduce(seq, 1, func(product, v T) T { return product * v })
 }
 
 // IsSorted returns true if each element of seq is greater than or
 // equal to the previous one.
-func IsSorted[T cmp.Ordered](seq Seq[T]) bool {
+func IsSorted[T cmp.Ordered](seq iter.Seq[T]) bool {
 	return IsSortedFunc(seq, cmp.Compare)
 }
 
 // IsSortedFunc is like [IsSorted] but uses a custom comparison
 // function.
-func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
+func IsSortedFunc[T any](seq iter.Seq[T], compare func(T, T) int) bool {
 	var prev T
 	c := func(T, T) int { return -1 }
 
@@ -123,16 +124,16 @@ func IsSortedFunc[T any](seq Seq[T], compare func(T, T) int) bool {
 // Equal returns true if seq1 and seq2 are the same length and each
 // element of each is equal to the element at the same point in the
 // sequence of the other.
-func Equal[T cmp.Ordered](seq1, seq2 Seq[T]) bool {
+func Equal[T cmp.Ordered](seq1, seq2 iter.Seq[T]) bool {
 	return EqualFunc(seq1, seq2, func(v1, v2 T) bool { return v1 == v2 })
 }
 
 // EqualFunc is like [Equal] but uses a custom comparison function to
 // determine the equivalence of the elements of each sequence.
-func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) bool {
-	p1, stop := Pull(seq1)
+func EqualFunc[T1, T2 any](seq1 iter.Seq[T1], seq2 iter.Seq[T2], equal func(T1, T2) bool) bool {
+	p1, stop := iter.Pull(seq1)
 	defer stop()
-	p2, stop := Pull(seq2)
+	p2, stop := iter.Pull(seq2)
 	defer stop()
 
 	for {
@@ -149,7 +150,7 @@ func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) 
 
 // Drain empties seq, returning the last value yielded. If no values
 // are yielded, ok will be false.
-func Drain[T any](seq Seq[T]) (v T, ok bool) {
+func Drain[T any](seq iter.Seq[T]) (v T, ok bool) {
 	seq(func(val T) bool {
 		v = val
 		ok = true
@@ -182,30 +183,30 @@ func AppendSplitTo[T1, T2 any](seq SplitSeq[T1, T2], s1 []T1, s2 []T2) ([]T1, []
 // Partition returns two slices, one containing all of the elements of
 // seq for which f(element) is true and one containing all of those
 // for which it is false.
-func Partition[T any](seq Seq[T], f func(T) bool) (true, false []T) {
+func Partition[T any](seq iter.Seq[T], f func(T) bool) (true, false []T) {
 	return PartitionInto(seq, f, true, false)
 }
 
 // PartitionInto performs a [Partition] by appending to two existing
 // slices.
-func PartitionInto[T any](seq Seq[T], f func(T) bool, true, false []T) ([]T, []T) {
+func PartitionInto[T any](seq iter.Seq[T], f func(T) bool, true, false []T) ([]T, []T) {
 	return AppendSplitTo(Split(seq, f), true, false)
 }
 
 // Min returns the minimum element yielded by seq or the zero value if
 // seq doesn't yield anything.
-func Min[T cmp.Ordered](seq Seq[T]) T {
+func Min[T cmp.Ordered](seq iter.Seq[T]) T {
 	return Fold(seq, func(v1, v2 T) T { return min(v1, v2) })
 }
 
 // Max returns maximum element yielded by seq or the zero value if seq
 // doesn't yield anything.
-func Max[T cmp.Ordered](seq Seq[T]) T {
+func Max[T cmp.Ordered](seq iter.Seq[T]) T {
 	return Fold(seq, func(v1, v2 T) T { return max(v1, v2) })
 }
 
 // FromPair converts a Seq of pairs to a two-value Seq.
-func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
+func FromPair[T1, T2 any](seq iter.Seq[Pair[T1, T2]]) iter.Seq2[T1, T2] {
 	return func(yield func(T1, T2) bool) {
 		seq(func(v Pair[T1, T2]) bool {
 			return yield(v.Split())
@@ -216,7 +217,7 @@ func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
 // SendContext sends values from seq to c repeatedly until either the
 // sequence ends or ctx is canceled. It blocks until one of those two
 // things happens.
-func SendContext[T any](seq Seq[T], ctx context.Context, c chan<- T) {
+func SendContext[T any](seq iter.Seq[T], ctx context.Context, c chan<- T) {
 	seq(func(v T) bool {
 		select {
 		case <-ctx.Done():

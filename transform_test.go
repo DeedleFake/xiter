@@ -3,6 +3,7 @@ package xiter
 import (
 	"bytes"
 	"cmp"
+	"iter"
 	"slices"
 	"testing"
 )
@@ -103,7 +104,7 @@ func TestMerge(t *testing.T) {
 	}
 }
 
-func splitmerge[T cmp.Ordered](s []T) Seq[T] {
+func splitmerge[T cmp.Ordered](s []T) iter.Seq[T] {
 	if len(s) <= 1 {
 		return OfSlice(s)
 	}

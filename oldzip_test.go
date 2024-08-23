@@ -1,6 +1,9 @@
 package xiter
 
-import "testing"
+import (
+	"iter"
+	"testing"
+)
 
 func BenchmarkOldZip(b *testing.B) {
 	slice1 := []int{1, 2, 3, 4, 5}
@@ -27,7 +30,7 @@ func oldZipSend[T any](done <-chan struct{}, c chan<- T) func(v T) bool {
 	}
 }
 
-func oldZip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
+func oldZip[T1, T2 any](seq1 iter.Seq[T1], seq2 iter.Seq[T2]) iter.Seq[Zipped[T1, T2]] {
 	done := make(chan struct{})
 
 	c1 := make(chan T1)
