@@ -2,6 +2,8 @@
 // with, but not requiring, Go 1.23.
 package xiter
 
+import "iter"
+
 // A SplitSeq is like a Seq but can yield via either of two functions.
 // It might not be useful, but is included anyways because it might
 // be.
@@ -33,4 +35,41 @@ type Addable interface {
 
 type Multiplyable interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | uintptr | float32 | float64 | complex64 | complex128
+}
+
+// CoroutineFunc is the signature of a coroutine function as passed to
+// [Coroutine].
+type CoroutineFunc[In, Out any] func(first In, yield func(Out) (In, bool))
+
+// CoroutineYieldFunc is the signature of a coroutine yield function
+// as returned by [Coroutine].
+type CoroutineYieldFunc[In, Out any] func(In) (Out, bool)
+
+// Coroutine starts the provided function as a coroutine. This is
+// similar to a pull iterator as returned by [iter.Pull], but allows
+// full, two-way communication with the suspended function. The
+// returned yield function can be used to pass data into the
+// coroutine, while the function given to the coroutine function
+// itself can be used to pass data back out, suspending the coroutine
+// where it was. All of the caveats and warnings that apply to
+// iter.Pull also apply to this.
+//
+// The coroutine provided is not started until the first call to the
+// returned yield function. On the first call, the coroutine is called
+// with the data passed to yield as its first argument. All subsequent
+// calls to yield will cause the yield function inside of the
+// coroutine to return the data provided instead.
+func Coroutine[In, Out any](coroutine CoroutineFunc[In, Out]) (yield CoroutineYieldFunc[In, Out], stop func()) {
+	var in In
+	next, stop := iter.Pull(func(yield func(Out) bool) {
+		coroutine(in, func(v Out) (In, bool) {
+			ok := yield(v)
+			return in, ok
+		})
+	})
+
+	return func(v In) (Out, bool) {
+		in = v
+		return next()
+	}, stop
 }
