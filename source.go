@@ -2,6 +2,7 @@ package xiter
 
 import (
 	"context"
+	"io"
 	"iter"
 	"slices"
 	"strings"
@@ -209,4 +210,80 @@ func SliceChunksFunc[T any, C comparable, S ~[]T](s S, chunker func(T) C) iter.S
 			}
 		}
 	}
+}
+
+// reader returns an iterator that reads using the given function. If
+// that function returns a non-nil error, the iterator will yield that
+// error and then exit. If the iterator is terminated early, it will
+// call the provided done function first.
+func reader[T byte | rune](read func() (T, error), done func()) iter.Seq2[T, error] {
+	return func(yield func(T, error) bool) {
+		for {
+			c, err := read()
+			if err != nil {
+				yield(c, err)
+				return
+			}
+			if !yield(c, nil) {
+				done()
+				return
+			}
+		}
+	}
+}
+
+// ReadBytes returns an iterator over the bytes of r. If reading the
+// next byte returns an error, the iterator will yield a non-nil error
+// and then exit.
+func ReadBytes(r io.ByteReader) iter.Seq2[byte, error] {
+	return reader(
+		r.ReadByte,
+		func() {},
+	)
+}
+
+// ReadRunes returns an iterator over the runes of r. If reading the
+// next rune returns an error, the iterator will yield a non-nil error
+// and then exit.
+func ReadRunes(r io.RuneReader) iter.Seq2[rune, error] {
+	return reader(
+		func() (rune, error) {
+			c, _, err := r.ReadRune()
+			return c, err
+		},
+		func() {},
+	)
+}
+
+// ScanBytes returns an iterator over the bytes of r. If reading the
+// next byte returns an error, the iterator will yield a non-nil error
+// and then exit.
+//
+// If the iterator is terminated early, it will unread
+// the last byte read, allowing it to be used again to continue from
+// where it left off. If this is not the desired behavior, use
+// [ReadBytes] instead.
+func ScanBytes(r io.ByteScanner) iter.Seq2[byte, error] {
+	return reader(
+		r.ReadByte,
+		func() { r.UnreadByte() },
+	)
+}
+
+// ScanRunes returns an iterator over the runes of r. If reading the
+// next rune returns an error, the iterator will yield a non-nil error
+// and then exit.
+//
+// If the iterator is terminated early, it will unread
+// the last rune read, allowing it to be used again to continue from
+// where it left off. If this is not the desired behavior, use
+// [ReadRunes] instead.
+func ScanRunes(r io.RuneScanner) iter.Seq2[rune, error] {
+	return reader(
+		func() (rune, error) {
+			c, _, err := r.ReadRune()
+			return c, err
+		},
+		func() { r.UnreadRune() },
+	)
 }

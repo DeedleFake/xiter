@@ -5,7 +5,9 @@ import (
 	"context"
 	"maps"
 	"slices"
+	"strings"
 	"testing"
+	"unicode"
 )
 
 func TestBytes(t *testing.T) {
@@ -66,5 +68,27 @@ func TestSliceChunkBy(t *testing.T) {
 	s := slices.Collect(SliceChunksFunc([]int{-1, -2, -3, 1, 2, 3, -1, -2, 3}, func(v int) int { return cmp.Compare(v, 0) }))
 	if !slices.EqualFunc(s, [][]int{{-1, -2, -3}, {1, 2, 3}, {-1, -2}, {3}}, slices.Equal) {
 		t.Fatal(s)
+	}
+}
+
+func TestScanBytes(t *testing.T) {
+	r := strings.NewReader("te st")
+	b := ScanRunes(r)
+
+	var buf []rune
+	for c := range b {
+		if unicode.IsSpace(c) {
+			break
+		}
+		buf = append(buf, c)
+	}
+	if !slices.Equal(buf, []rune("te")) {
+		t.Fatal(string(buf))
+	}
+	if r.Len() != 3 {
+		t.Fatal(r.Len())
+	}
+	if c, err := r.ReadByte(); err != nil || c != ' ' {
+		t.Fatalf("%q, %v", c, err)
 	}
 }
