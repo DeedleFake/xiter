@@ -51,7 +51,7 @@ func TestConcat(t *testing.T) {
 		t.Fatal(s)
 	}
 
-	s = Chain[int](slices.Values([]int{1, 2, 3})).Concat(slices.Values([]int{3, 2, 5})).Collect()
+	s = slices.Collect(Concat(slices.Values([]int{1, 2, 3}), slices.Values([]int{3, 2, 5})))
 	if [6]int(s) != [...]int{1, 2, 3, 3, 2, 5} {
 		t.Fatal(s)
 	}
@@ -198,7 +198,7 @@ func TestOr(t *testing.T) {
 		t.Fatal(s)
 	}
 
-	s = Chain[int](Of[int]()).Or(nil, Of(1, 2, 3), Of(4, 5, 6)).Collect()
+	s = slices.Collect(Or(Of[int](), Of(1, 2, 3), Of(4, 5, 6)))
 	if !slices.Equal(s, []int{1, 2, 3}) {
 		t.Fatal(s)
 	}
