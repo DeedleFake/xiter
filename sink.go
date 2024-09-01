@@ -5,6 +5,7 @@ import (
 	"context"
 	"iter"
 	"slices"
+	"strings"
 )
 
 // CollectSize pre-allocates the slice being collected into to the
@@ -213,4 +214,17 @@ func SendContext[T any](seq iter.Seq[T], ctx context.Context, c chan<- T) {
 			return true
 		}
 	})
+}
+
+// StringJoin works exactly like [strings.Join] but it operates on an
+// [iter.Seq] instead of a []string.
+func StringJoin(seq iter.Seq[string], sep string) string {
+	var buf strings.Builder
+	var s string
+	for v := range seq {
+		buf.WriteString(s)
+		buf.WriteString(v)
+		s = sep
+	}
+	return buf.String()
 }

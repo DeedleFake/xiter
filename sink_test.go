@@ -115,3 +115,10 @@ func TestDrain(t *testing.T) {
 		t.Fatalf("%v, %v", v, ok)
 	}
 }
+
+func TestStringJoin(t *testing.T) {
+	s := StringJoin(Of("this", "is", "a", "test"), " ")
+	if s != "this is a test" {
+		t.Fatalf("%q", s)
+	}
+}
