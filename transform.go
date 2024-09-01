@@ -370,3 +370,22 @@ func Or[T any](seqs ...iter.Seq[T]) iter.Seq[T] {
 		})
 	}
 }
+
+// Dedup returns an iterator that only yields each unique element from
+// seq once. Note that to do this, it stores a set of all elements
+// that have been seen, so this iterator can use a large amount of
+// memory if seq yields a very large number of unique elements.
+func Dedup[T comparable](seq iter.Seq[T]) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		found := make(map[T]struct{})
+		for v := range seq {
+			if _, ok := found[v]; ok {
+				continue
+			}
+			found[v] = struct{}{}
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
