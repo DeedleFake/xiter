@@ -389,3 +389,41 @@ func Dedup[T comparable](seq iter.Seq[T]) iter.Seq[T] {
 		}
 	}
 }
+
+// Uniq returns an iterator that removes consecutive duplicates from
+// seq. It is similar to [Dedup], but non-consecutive duplicates are
+// not filtered out. Unlike Dedup, it does not store all found values,
+// and so does not have the same performance implication that Dedup
+// does.
+func Uniq[T comparable](seq iter.Seq[T]) iter.Seq[T] {
+	return UniqFunc(seq, func(v1, v2 T) bool { return v1 == v2 })
+}
+
+// UniqFunc is like [Uniq] but uses the provided comparison function
+// to check for duplicates.
+func UniqFunc[T comparable](seq iter.Seq[T], eq func(T, T) bool) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		next, stop := iter.Pull(seq)
+		defer stop()
+
+		cur, ok := next()
+		if !ok || !yield(cur) {
+			return
+		}
+
+		for {
+			v, ok := next()
+			if !ok {
+				return
+			}
+			if eq(v, cur) {
+				continue
+			}
+
+			if !yield(v) {
+				return
+			}
+			cur = v
+		}
+	}
+}

@@ -210,3 +210,10 @@ func TestDedup(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestUniq(t *testing.T) {
+	s := slices.Collect(Uniq(Of(1, 2, 3, 1, 2, 3, 4, 5, 3, 3, 3, 1, 2, 10)))
+	if !slices.Equal(s, []int{1, 2, 3, 1, 2, 3, 4, 5, 3, 1, 2, 10}) {
+		t.Fatal(s)
+	}
+}
