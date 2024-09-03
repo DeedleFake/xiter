@@ -92,7 +92,7 @@ func isValueSeq(v reflect.Value) bool {
 	if t.NumIn() != 1 {
 		return false
 	}
-	if t.NumOut() != 1 || t.Out(0).Kind() != reflect.Bool {
+	if t.NumOut() != 0 {
 		return false
 	}
 
