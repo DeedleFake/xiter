@@ -174,7 +174,6 @@ func TestCache(t *testing.T) {
 	f := func(yield func(int) bool) {
 		yield(i)
 		i++
-		return
 	}
 	seq := Cache(f)
 	if s := slices.Collect(seq); !slices.Equal(s, []int{0}) {

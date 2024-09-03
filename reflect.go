@@ -42,7 +42,6 @@ func ofValueIndexable(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 				return
 			}
 		}
-		return
 	}
 }
 
@@ -77,14 +76,13 @@ func ofValueMap(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 				return
 			}
 		}
-		return
 	}
 }
 
 func ofValuePointerToArray(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 	sv := v.Elem()
 	if !sv.IsValid() {
-		return func(func(v1, v2 reflect.Value) bool) { return }
+		return func(func(v1, v2 reflect.Value) bool) {}
 	}
 	return ofValueIndexable(sv)
 }
@@ -122,7 +120,6 @@ func ofValueFunc(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 			return []reflect.Value{reflect.ValueOf(yield(v1, v2))}
 		})
 		v.Call([]reflect.Value{yv})
-		return
 	}
 }
 
@@ -132,9 +129,6 @@ func ofValueInt(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 		panic(fmt.Errorf("%v < 0", v.Int()))
 	}
 	if v.CanUint() {
-		if v.Uint() < 0 {
-			panic(fmt.Errorf("%v < 0", v.Int()))
-		}
 		inc = func(v reflect.Value) reflect.Value { return reflect.ValueOf(v.Uint() + 1) }
 	}
 
@@ -145,6 +139,5 @@ func ofValueInt(v reflect.Value) iter.Seq2[reflect.Value, reflect.Value] {
 				return
 			}
 		}
-		return
 	}
 }

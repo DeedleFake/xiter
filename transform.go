@@ -167,8 +167,6 @@ func MergeFunc[T any](seq1, seq2 iter.Seq[T], compare func(T, T) int) iter.Seq[T
 				v2, ok2 = p2()
 			}
 		}
-
-		return
 	}
 }
 
@@ -208,7 +206,6 @@ func Windows[T any](seq iter.Seq[T], n int) iter.Seq[[]T] {
 		if len(win) < n {
 			yield(win)
 		}
-		return
 	}
 }
 
@@ -250,7 +247,6 @@ func Chunks[T any](seq iter.Seq[T], n int) iter.Seq[[]T] {
 		if len(win) < n {
 			yield(win)
 		}
-		return
 	}
 }
 

@@ -39,7 +39,6 @@ func Bytes(s string) iter.Seq[byte] {
 				return
 			}
 		}
-		return
 	}
 }
 
@@ -54,7 +53,6 @@ func Runes[T ~[]byte | ~string](s T) iter.Seq[rune] {
 			}
 			b = b[size:]
 		}
-		return
 	}
 }
 
@@ -156,7 +154,6 @@ func OfChan[T any](c <-chan T) iter.Seq[T] {
 				return
 			}
 		}
-		return
 	}
 }
 
