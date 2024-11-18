@@ -4,6 +4,8 @@ import (
 	"cmp"
 	"iter"
 	"slices"
+
+	"deedles.dev/xiter/internal/xheap"
 )
 
 // Map returns a Seq that yields the values of seq transformed via f.
@@ -420,6 +422,41 @@ func UniqFunc[T comparable](seq iter.Seq[T], eq func(T, T) bool) iter.Seq[T] {
 				return
 			}
 			cur = v
+		}
+	}
+}
+
+// Sorted collects the entirety of seq and then returns a one-time use
+// iterator which yields the elements of seq in a sorted order.
+func Sorted[T cmp.Ordered](seq iter.Seq[T]) iter.Seq[T] {
+	s := slices.Collect(seq)
+	xheap.Init(s)
+
+	return func(yield func(T) bool) {
+		for len(s) > 0 {
+			var v T
+			v, s = xheap.Pop(s)
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// SortedFunc collects the entirety of seq and then returns a one-time
+// use iterator which yields the elements of seq in a sorted order
+// determined by the provided comparison function.
+func SortedFunc[T any](seq iter.Seq[T], compare func(T, T) int) iter.Seq[T] {
+	s := slices.Collect(seq)
+	xheap.InitFunc(s, compare)
+
+	return func(yield func(T) bool) {
+		for len(s) > 0 {
+			var v T
+			v, s = xheap.PopFunc(s, compare)
+			if !yield(v) {
+				return
+			}
 		}
 	}
 }

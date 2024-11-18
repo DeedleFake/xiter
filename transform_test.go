@@ -216,3 +216,18 @@ func TestUniq(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestSorted(t *testing.T) {
+	s := slices.Collect(Sorted(Of(3, 2, 5, 1, 7, 7, 8, 2)))
+	if !slices.Equal(s, []int{1, 2, 2, 3, 5, 7, 7, 8}) {
+		t.Fatal(s)
+	}
+}
+
+func TestSortedFunc(t *testing.T) {
+	compare := func(v1, v2 int) int { return v2 - v1 }
+	s := slices.Collect(SortedFunc(Of(3, 2, 5, 1, 7, 7, 8, 2), compare))
+	if !slices.Equal(s, []int{8, 7, 7, 5, 3, 2, 2, 1}) {
+		t.Fatal(s)
+	}
+}
