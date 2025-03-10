@@ -39,11 +39,11 @@ type Multiplyable interface {
 
 // CoroutineFunc is the signature of a coroutine function as passed to
 // [Coroutine].
-type CoroutineFunc[In, Out any] func(first In, yield func(Out) (In, bool))
+type CoroutineFunc[In, Out any] = func(first In, yield CoroutineYieldFunc[Out, In]) Out
 
 // CoroutineYieldFunc is the signature of a coroutine yield function
 // as returned by [Coroutine].
-type CoroutineYieldFunc[In, Out any] func(In) (Out, bool)
+type CoroutineYieldFunc[In, Out any] = func(In) (Out, bool)
 
 // Coroutine starts the provided function as a coroutine. This is
 // similar to a pull iterator as returned by [iter.Pull], but allows
@@ -59,17 +59,29 @@ type CoroutineYieldFunc[In, Out any] func(In) (Out, bool)
 // with the data passed to yield as its first argument. All subsequent
 // calls to yield will cause the yield function inside of the
 // coroutine to return the data provided instead.
-func Coroutine[In, Out any](coroutine CoroutineFunc[In, Out]) (yield CoroutineYieldFunc[In, Out], stop func()) {
+//
+// The returned stop function returns the final return value of the
+// coroutine function. If the coroutine was never started, this will
+// return the zero value.
+func Coroutine[In, Out any](coroutine CoroutineFunc[In, Out]) (yield CoroutineYieldFunc[In, Out], stop func() Out) {
 	var in In
-	next, stop := iter.Pull(func(yield func(Out) bool) {
-		coroutine(in, func(v Out) (In, bool) {
+	var r Out
+	next, pstop := iter.Pull(func(yield func(Out) bool) {
+		r = coroutine(in, func(v Out) (In, bool) {
 			ok := yield(v)
 			return in, ok
 		})
 	})
 
-	return func(v In) (Out, bool) {
+	yield = func(v In) (Out, bool) {
 		in = v
 		return next()
-	}, stop
+	}
+
+	stop = func() Out {
+		pstop()
+		return r
+	}
+
+	return yield, stop
 }

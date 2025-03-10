@@ -3,7 +3,7 @@ package xiter
 import "testing"
 
 func TestCoroutine(t *testing.T) {
-	yield, stop := Coroutine(func(first int, yield func(int) (int, bool)) {
+	yield, stop := Coroutine(func(first int, yield func(int) (int, bool)) int {
 		if first != 0 {
 			t.Fatal(first)
 		}
@@ -15,7 +15,7 @@ func TestCoroutine(t *testing.T) {
 				if prev != 10 {
 					t.Fatal(v)
 				}
-				return
+				return -1
 			}
 			if v != prev+2 {
 				t.Fatal(v)
@@ -23,7 +23,6 @@ func TestCoroutine(t *testing.T) {
 			prev = v
 		}
 	})
-	defer stop()
 
 	prev, ok := yield(0)
 	if !ok {
@@ -38,5 +37,10 @@ func TestCoroutine(t *testing.T) {
 			t.Fatal(v)
 		}
 		prev = v
+	}
+
+	r := stop()
+	if r != -1 {
+		t.Fatal(r)
 	}
 }
