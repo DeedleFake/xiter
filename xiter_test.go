@@ -1,6 +1,9 @@
 package xiter
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestCoroutine(t *testing.T) {
 	yield, stop := Coroutine(func(first int, yield func(int) (int, bool)) int {
@@ -43,4 +46,28 @@ func TestCoroutine(t *testing.T) {
 	if r != -1 {
 		t.Fatal(r)
 	}
+}
+
+func ExampleCoroutine() {
+	next, stop := Coroutine(func(val int, next func(int) (int, bool)) int {
+		for {
+			v, ok := next(val * 2)
+			if !ok {
+				return v
+			}
+			val = v
+		}
+	})
+	defer stop()
+
+	var val int
+	for range 10 {
+		v, ok := next(val + 1)
+		if !ok {
+			break
+		}
+		val = v
+	}
+	fmt.Printf("result: %v\n", stop())
+	// Output: result: 1023
 }

@@ -63,6 +63,10 @@ type CoroutineYieldFunc[In, Out any] = func(In) (Out, bool)
 // The returned stop function returns the final return value of the
 // coroutine function. If the coroutine was never started, this will
 // return the zero value.
+//
+// After stop is called, the value returned by yield inside of the
+// coroutine will be the last value that was yielded to the coroutine
+// before the call to stop.
 func Coroutine[In, Out any](coroutine CoroutineFunc[In, Out]) (yield CoroutineYieldFunc[In, Out], stop func() Out) {
 	var in In
 	var r Out
