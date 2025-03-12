@@ -71,3 +71,19 @@ func ExampleCoroutine() {
 	fmt.Printf("result: %v\n", stop())
 	// Output: result: 1023
 }
+
+func TestPush(t *testing.T) {
+	next, stop := Push(Sum[int])
+	defer stop()
+
+	for n := range 10 {
+		if !next(n) {
+			t.Fatal(n)
+		}
+	}
+
+	r := stop()
+	if r != 45 {
+		t.Fatal(r)
+	}
+}
