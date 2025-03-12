@@ -30,6 +30,34 @@ func Filter[T any](seq iter.Seq[T], f func(T) bool) iter.Seq[T] {
 	}
 }
 
+// FilterMap returns a Seq that yields the non-zeroed values of seq transformed via f.
+func FilterMap[T1 any, T2 comparable](seq Seq[T1], f func(T1) T2) Seq[T2] {
+	var zero T2
+
+	return func(yield func(T2) bool) {
+		seq(func(v T1) bool {
+			if r := f(v); r != zero {
+				return yield(r)
+			}
+
+			return true
+		})
+	}
+}
+
+// FilterMap2 returns a Seq that yields the succeeded values of seq transformed via f.
+func FilterMap2[T1 any, T2 comparable](seq Seq[T1], f func(T1) (T2, bool)) Seq[T2] {
+	return func(yield func(T2) bool) {
+		seq(func(v T1) bool {
+			if r, ok := f(v); ok {
+				return yield(r)
+			}
+
+			return true
+		})
+	}
+}
+
 // Skip returns a Seq that skips over the first n elements of seq and
 // then yields the rest normally.
 func Skip[T any](seq iter.Seq[T], n int) iter.Seq[T] {
