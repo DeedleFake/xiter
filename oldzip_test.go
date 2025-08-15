@@ -10,7 +10,7 @@ func BenchmarkOldZip(b *testing.B) {
 	slice1 := []int{1, 2, 3, 4, 5}
 	slice2 := []int{2, 3, 4, 5, 6}
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		s1 := slices.Values(slice1)
 		s2 := slices.Values(slice2)
 		seq := oldZip(s1, s2)

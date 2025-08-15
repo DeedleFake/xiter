@@ -73,7 +73,7 @@ func BenchmarkZip(b *testing.B) {
 	slice1 := []int{1, 2, 3, 4, 5}
 	slice2 := []int{2, 3, 4, 5, 6}
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		s1 := slices.Values(slice1)
 		s2 := slices.Values(slice2)
 		seq := Zip(s1, s2)
@@ -115,7 +115,7 @@ func splitmerge[T cmp.Ordered](s []T) iter.Seq[T] {
 }
 
 func mergesort[T cmp.Ordered](s []T) {
-	slices.AppendSeq(s[:0], splitmerge(s))
+	_ = slices.AppendSeq(s[:0], splitmerge(s))
 }
 
 func TestMergeSort(t *testing.T) {
