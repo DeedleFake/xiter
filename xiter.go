@@ -1,8 +1,41 @@
-// Package xiter provides iterator-related functionality compatible
-// with, but not requiring, Go 1.23.
+// Package xiter provides iterator-related functionality.
 package xiter
 
 import "iter"
+
+// Seq is a local implementation of [iter.Seq] to allow adding
+// methods.
+type Seq[T any] iter.Seq[T]
+
+// S is a convenience function to provide type inference when
+// converting from an [iter.Seq].
+func S[T any](seq iter.Seq[T]) Seq[T] { return Seq[T](seq) }
+
+// Seq converts back to an [iter.Seq].
+func (seq Seq[T]) Seq() iter.Seq[T] { return iter.Seq[T](seq) }
+
+// SeqCompat is a constraint to allow functions to accept either
+// [iter.Seq] or [Seq].
+type SeqCompat[T any] interface {
+	~func(func(T) bool)
+}
+
+// Seq2 is a local implementation of [iter.Seq2] to allow adding
+// methods.
+type Seq2[T1, T2 any] iter.Seq2[T1, T2]
+
+// S2 is a convenience function to provide type inference when
+// converting from an [iter.Seq2].
+func S2[T1, T2 any](seq iter.Seq2[T1, T2]) Seq2[T1, T2] { return Seq2[T1, T2](seq) }
+
+// Seq converts back to an [iter.Seq2].
+func (seq Seq2[T1, T2]) Seq() iter.Seq2[T1, T2] { return iter.Seq2[T1, T2](seq) }
+
+// Seq2Compat is a constraint to allow functions to accept either
+// [iter.Seq2] or [Seq2].
+type Seq2Compat[T1, T2 any] interface {
+	~func(func(T1, T2) bool)
+}
 
 // A SplitSeq is like a Seq but can yield via either of two functions.
 // It might not be useful, but is included anyways because it might
@@ -101,9 +134,9 @@ func Coroutine[In, Out any](coroutine CoroutineFunc[In, Out]) (yield CoroutineYi
 // wrapping certain types of APIs to make them interact more cleanly
 // with [iter.Seq], like that shown in the example.
 //
-// If full, two-way communication with coroutine is necessary, see
+// If full, two-way communication with a coroutine is necessary, see
 // [Coroutine].
-func Push[In, Out any](coroutine func(iter.Seq[In]) Out) (yield func(In) bool, stop func() Out) {
+func Push[In, Out any, S SeqCompat[In]](coroutine func(S) Out) (yield func(In) bool, stop func() Out) {
 	next, stop := Coroutine(func(v In, next func(Out) (In, bool)) Out {
 		return coroutine(func(yield func(In) bool) {
 			if !yield(v) {
