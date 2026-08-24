@@ -7,10 +7,7 @@ import (
 )
 
 func TestFind(t *testing.T) {
-	s, _ := Find(Windows(Generate(
-		0, 1),
-		3),
-		func(win []int) bool { return Sum(slices.Values(win)) >= 100 })
+	s, _ := Windows(Generate(0, 1), 3).Find(func(win []int) bool { return Sum(Of(win...)) >= 100 })
 	if [3]int(s) != [...]int{33, 34, 35} {
 		t.Fatal(s)
 	}
@@ -24,7 +21,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	s := Sum(slices.Values([]string{"a", " ", "test"}))
+	s := Sum(Of("a", " ", "test"))
 	if s != "a test" {
 		t.Fatal(s)
 	}
@@ -38,11 +35,11 @@ func TestProduct(t *testing.T) {
 }
 
 func TestPartition(t *testing.T) {
-	s1, s2 := Partition(Of(1, 2, 3, 4, 5), func(v int) bool { return v%2 == 0 })
-	if !Equal(slices.Values(s1), Of(2, 4)) {
+	s1, s2 := Of(1, 2, 3, 4, 5).Partition(func(v int) bool { return v%2 == 0 })
+	if !Equal(Of(s1...), Of(2, 4)) {
 		t.Fatal(s1)
 	}
-	if !Equal(slices.Values(s2), Of(1, 3, 5)) {
+	if !Equal(Of(s2...), Of(1, 3, 5)) {
 		t.Fatal(s2)
 	}
 }
@@ -60,22 +57,39 @@ func TestExtent(t *testing.T) {
 }
 
 func TestAny(t *testing.T) {
-	r := Any(Of(2, 4, 6, 7), func(v int) bool { return v%2 != 0 })
+	r := Of(2, 4, 6, 7).Any(func(v int) bool { return v%2 != 0 })
 	if !r {
 		t.Fatal(r)
 	}
 }
 
 func TestAll(t *testing.T) {
-	r := All(Of(2, 4, 6, 7), func(v int) bool { return v%2 == 0 })
+	even := func(v int) bool { return v%2 == 0 }
+
+	r := Of(2, 4, 6).All(even)
+	if !r {
+		t.Fatal(r)
+	}
+
+	r = Of(2, 4, 6, 7).All(even)
 	if r {
+		t.Fatal(r)
+	}
+
+	r = Of(1, 3, 5).All(even)
+	if r {
+		t.Fatal(r)
+	}
+
+	r = Of[int]().All(even)
+	if !r {
 		t.Fatal(r)
 	}
 }
 
 func TestSendContext(t *testing.T) {
 	c := make(chan int, 3)
-	SendContext(Of(3, 2, 5), context.Background(), c)
+	Of(3, 2, 5).SendContext(context.Background(), c)
 	s := []int{<-c, <-c, <-c}
 	select {
 	case v := <-c:
@@ -95,9 +109,9 @@ func FuzzSendRecvContext(f *testing.F) {
 		defer cancel()
 
 		c := make(chan byte, len(data))
-		SendContext(slices.Values(data), ctx, c)
+		S(slices.Values(data)).SendContext(ctx, c)
 		close(c)
-		s := slices.Collect(RecvContext(ctx, c))
+		s := RecvContext(ctx, c).Collect()
 		if !slices.Equal(data, s) {
 			t.Fatal(s)
 		}
@@ -105,12 +119,12 @@ func FuzzSendRecvContext(f *testing.F) {
 }
 
 func TestDrain(t *testing.T) {
-	v, ok := Drain(Of(3, 2, 5))
+	v, ok := Of(3, 2, 5).Drain()
 	if !ok || v != 5 {
 		t.Fatalf("%v, %v", v, ok)
 	}
 
-	v, ok = Drain(Of[int]())
+	v, ok = Of[int]().Drain()
 	if ok || v != 0 {
 		t.Fatalf("%v, %v", v, ok)
 	}

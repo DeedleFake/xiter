@@ -3,7 +3,6 @@ package xiter
 import (
 	"context"
 	"io"
-	"iter"
 	"slices"
 	"strings"
 	"unicode"
@@ -14,8 +13,8 @@ import (
 // Generate returns a Seq that first yields start and then yields
 // successive values by adding step to the previous continuously. The
 // returned Seq does not end. To limit it to a specific number of
-// returned elements, use [Limit].
-func Generate[T Addable](start, step T) iter.Seq[T] {
+// returned elements, use [Seq.Limit].
+func Generate[T Addable](start, step T) Seq[T] {
 	return func(yield func(T) bool) {
 		for {
 			if !yield(start) {
@@ -27,12 +26,12 @@ func Generate[T Addable](start, step T) iter.Seq[T] {
 }
 
 // Of returns a Seq that yields the provided values.
-func Of[T any](vals ...T) iter.Seq[T] {
-	return slices.Values(vals)
+func Of[T any](vals ...T) Seq[T] {
+	return S(slices.Values(vals))
 }
 
 // Bytes returns a Seq over the bytes of s.
-func Bytes(s string) iter.Seq[byte] {
+func Bytes(s string) Seq[byte] {
 	return func(yield func(byte) bool) {
 		for i := 0; i < len(s); i++ {
 			if !yield(s[i]) {
@@ -43,7 +42,7 @@ func Bytes(s string) iter.Seq[byte] {
 }
 
 // Runes returns a Seq over the runes of s.
-func Runes[T ~[]byte | ~string](s T) iter.Seq[rune] {
+func Runes[T ~[]byte | ~string](s T) Seq[rune] {
 	return func(yield func(rune) bool) {
 		b := unsafe.Slice(unsafe.StringData(*(*string)(unsafe.Pointer(&s))), len(s))
 		for len(b) > 0 {
@@ -58,9 +57,9 @@ func Runes[T ~[]byte | ~string](s T) iter.Seq[rune] {
 
 // StringSplit returns an iterator over the substrings of s that are
 // separated by sep. It behaves very similarly to [strings.Split].
-func StringSplit(s, sep string) iter.Seq[string] {
+func StringSplit(s, sep string) Seq[string] {
 	if sep == "" {
-		return Map(Runes(s), func(c rune) string { return string(c) })
+		return Runes(s).Map(func(c rune) string { return string(c) })
 	}
 
 	return func(yield func(string) bool) {
@@ -81,17 +80,17 @@ func StringSplit(s, sep string) iter.Seq[string] {
 // StringFields returns an iterator over the substrings of s that are
 // seperated by consecutive whitespace as determined by
 // [unicode.IsSpace]. It is very similar to [strings.Fields].
-func StringFields(s string) iter.Seq[string] {
+func StringFields(s string) Seq[string] {
 	return StringFieldsFunc(s, unicode.IsSpace)
 }
 
 // StringFieldsFunc returns an iterator over the substrings of s that
 // are seperated by consecutive sections of runes for which sep
 // returns true. It behaves very similarly to [strings.FieldsFunc].
-func StringFieldsFunc(s string, sep func(rune) bool) iter.Seq[string] {
+func StringFieldsFunc(s string, sep func(rune) bool) Seq[string] {
 	return func(yield func(string) bool) {
 		start := 0
-		for i, r := range Enumerate(Runes(s)) {
+		for i, r := range Runes(s).Enumerate() {
 			if !sep(r) {
 				continue
 			}
@@ -117,37 +116,9 @@ func StringFieldsFunc(s string, sep func(rune) bool) iter.Seq[string] {
 	}
 }
 
-// ToPair takes a two-value iterator and produces a single-value
-// iterator of pairs.
-func ToPair[T1, T2 any](seq iter.Seq2[T1, T2]) iter.Seq[Pair[T1, T2]] {
-	return func(yield func(Pair[T1, T2]) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(P(v1, v2))
-		})
-	}
-}
-
-// V1 returns a Seq which iterates over only the T1 elements of seq.
-func V1[T1, T2 any](seq iter.Seq2[T1, T2]) iter.Seq[T1] {
-	return func(yield func(T1) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(v1)
-		})
-	}
-}
-
-// V2 returns a Seq which iterates over only the T2 elements of seq.
-func V2[T1, T2 any](seq iter.Seq2[T1, T2]) iter.Seq[T2] {
-	return func(yield func(T2) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(v2)
-		})
-	}
-}
-
 // OfChan returns a Seq which yields values received from c. The
 // sequence ends when c is closed. It is equivalent to range c.
-func OfChan[T any](c <-chan T) iter.Seq[T] {
+func OfChan[T any](c <-chan T) Seq[T] {
 	return func(yield func(T) bool) {
 		for v := range c {
 			if !yield(v) {
@@ -159,7 +130,7 @@ func OfChan[T any](c <-chan T) iter.Seq[T] {
 
 // RecvContext returns a Seq that receives from c continuously until
 // either c is closed or the given context is canceled.
-func RecvContext[T any](ctx context.Context, c <-chan T) iter.Seq[T] {
+func RecvContext[T any](ctx context.Context, c <-chan T) Seq[T] {
 	return func(yield func(T) bool) {
 		for {
 			select {
@@ -175,11 +146,11 @@ func RecvContext[T any](ctx context.Context, c <-chan T) iter.Seq[T] {
 }
 
 // SliceChunksFunc is like [ChunksFunc] but operates on a slice
-// instead of an [iter.Seq]. When dealing with data that is in a
+// instead of a [Seq]. When dealing with data that is in a
 // slice, this is more effecient than using ChunksFunc as it can yield
 // subslices of the underlying slice instead of having to allocate a
 // moving window. The yielded subslices have their capacity clipped.
-func SliceChunksFunc[T any, C comparable, S ~[]T](s S, chunker func(T) C) iter.Seq[S] {
+func SliceChunksFunc[T any, C comparable, S ~[]T](s S, chunker func(T) C) Seq[S] {
 	return func(yield func(S) bool) {
 		if len(s) == 0 {
 			return
@@ -213,7 +184,7 @@ func SliceChunksFunc[T any, C comparable, S ~[]T](s S, chunker func(T) C) iter.S
 // that function returns a non-nil error, the iterator will yield that
 // error and then exit. If the iterator is terminated early, it will
 // call the provided done function first.
-func reader[T byte | rune](read func() (T, error), done func()) iter.Seq2[T, error] {
+func reader[T byte | rune](read func() (T, error), done func()) Seq2[T, error] {
 	return func(yield func(T, error) bool) {
 		for {
 			c, err := read()
@@ -232,7 +203,7 @@ func reader[T byte | rune](read func() (T, error), done func()) iter.Seq2[T, err
 // ReadBytes returns an iterator over the bytes of r. If reading the
 // next byte returns an error, the iterator will yield a non-nil error
 // and then exit.
-func ReadBytes(r io.ByteReader) iter.Seq2[byte, error] {
+func ReadBytes(r io.ByteReader) Seq2[byte, error] {
 	return reader(
 		r.ReadByte,
 		func() {},
@@ -242,7 +213,7 @@ func ReadBytes(r io.ByteReader) iter.Seq2[byte, error] {
 // ReadRunes returns an iterator over the runes of r. If reading the
 // next rune returns an error, the iterator will yield a non-nil error
 // and then exit.
-func ReadRunes(r io.RuneReader) iter.Seq2[rune, error] {
+func ReadRunes(r io.RuneReader) Seq2[rune, error] {
 	return reader(
 		func() (rune, error) {
 			c, _, err := r.ReadRune()
@@ -260,7 +231,7 @@ func ReadRunes(r io.RuneReader) iter.Seq2[rune, error] {
 // the last byte read, allowing it to be used again to continue from
 // where it left off. If this is not the desired behavior, use
 // [ReadBytes] instead.
-func ScanBytes(r io.ByteScanner) iter.Seq2[byte, error] {
+func ScanBytes(r io.ByteScanner) Seq2[byte, error] {
 	return reader(
 		r.ReadByte,
 		func() { r.UnreadByte() },
@@ -275,7 +246,7 @@ func ScanBytes(r io.ByteScanner) iter.Seq2[byte, error] {
 // the last rune read, allowing it to be used again to continue from
 // where it left off. If this is not the desired behavior, use
 // [ReadRunes] instead.
-func ScanRunes(r io.RuneScanner) iter.Seq2[rune, error] {
+func ScanRunes(r io.RuneScanner) Seq2[rune, error] {
 	return reader(
 		func() (rune, error) {
 			c, _, err := r.ReadRune()
