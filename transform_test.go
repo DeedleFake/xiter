@@ -50,27 +50,133 @@ func TestConcat(t *testing.T) {
 }
 
 func TestZip(t *testing.T) {
-	s1 := Of(1, 2, 3, 4, 5)
-	s2 := Of(2, 3, 4, 5, 6)
-	seq := Zip(s1, s2)
-	seq(func(v Zipped[int, int]) bool {
-		if v.V2-v.V1 != 1 {
-			t.Fatalf("unexpected values: %+v", v)
-		}
-		return true
-	})
+	tests := []struct {
+		name  string
+		s1    []int
+		s2    []int
+		limit int
+		want  []Zipped[int, int]
+	}{
+		{
+			name: "equal",
+			s1:   []int{1, 2, 3, 4, 5},
+			s2:   []int{2, 3, 4, 5, 6},
+			want: []Zipped[int, int]{
+				{V1: 1, OK1: true, V2: 2, OK2: true},
+				{V1: 2, OK1: true, V2: 3, OK2: true},
+				{V1: 3, OK1: true, V2: 4, OK2: true},
+				{V1: 4, OK1: true, V2: 5, OK2: true},
+				{V1: 5, OK1: true, V2: 6, OK2: true},
+			},
+		},
+		{
+			name: "seq1 shorter",
+			s1:   []int{1, 2, 3, 4},
+			s2:   []int{2, 3, 4, 5, 10},
+			want: []Zipped[int, int]{
+				{V1: 1, OK1: true, V2: 2, OK2: true},
+				{V1: 2, OK1: true, V2: 3, OK2: true},
+				{V1: 3, OK1: true, V2: 4, OK2: true},
+				{V1: 4, OK1: true, V2: 5, OK2: true},
+				{V2: 10, OK2: true},
+			},
+		},
+		{
+			name: "seq2 shorter",
+			s1:   []int{1, 2, 3, 4, 10},
+			s2:   []int{2, 3, 4, 5},
+			want: []Zipped[int, int]{
+				{V1: 1, OK1: true, V2: 2, OK2: true},
+				{V1: 2, OK1: true, V2: 3, OK2: true},
+				{V1: 3, OK1: true, V2: 4, OK2: true},
+				{V1: 4, OK1: true, V2: 5, OK2: true},
+				{V1: 10, OK1: true},
+			},
+		},
+		{
+			name: "empty seq1",
+			s2:   []int{1, 2, 3},
+			want: []Zipped[int, int]{
+				{V2: 1, OK2: true},
+				{V2: 2, OK2: true},
+				{V2: 3, OK2: true},
+			},
+		},
+		{
+			name: "empty seq2",
+			s1:   []int{1, 2, 3},
+			want: []Zipped[int, int]{
+				{V1: 1, OK1: true},
+				{V1: 2, OK1: true},
+				{V1: 3, OK1: true},
+			},
+		},
+		{
+			name:  "stop with seq2 remaining",
+			s1:    []int{1, 2},
+			s2:    []int{10, 20, 30, 40},
+			limit: 1,
+			want: []Zipped[int, int]{
+				{V1: 1, OK1: true, V2: 10, OK2: true},
+			},
+		},
+		{
+			name:  "stop leftover",
+			s1:    []int{1},
+			s2:    []int{10, 20, 30},
+			limit: 2,
+			want: []Zipped[int, int]{
+				{V1: 1, OK1: true, V2: 10, OK2: true},
+				{V2: 20, OK2: true},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			seq := Zip(Of(tt.s1...), Of(tt.s2...))
+			if tt.limit > 0 {
+				seq = seq.Limit(tt.limit)
+			}
+			got := seq.Collect()
+			if !slices.Equal(got, tt.want) {
+				t.Fatal(got)
+			}
+		})
+	}
 }
 
 func BenchmarkZip(b *testing.B) {
-	slice1 := []int{1, 2, 3, 4, 5}
-	slice2 := []int{2, 3, 4, 5, 6}
+	benchmarkZip(b, Zip)
+}
 
-	for b.Loop() {
-		s1 := S(slices.Values(slice1))
-		s2 := S(slices.Values(slice2))
-		seq := Zip(s1, s2)
-		seq(func(v Zipped[int, int]) bool {
-			return true
+func benchmarkZip(b *testing.B, zip func(Seq[int], Seq[int]) Seq[Zipped[int, int]]) {
+	shapes := []struct {
+		name   string
+		n1, n2 int
+	}{
+		{"n5_equal", 5, 5},
+		{"n1000_equal", 1000, 1000},
+		{"seq1_short", 10, 1000},
+	}
+
+	for _, shape := range shapes {
+		b.Run(shape.name, func(b *testing.B) {
+			s1 := make([]int, shape.n1)
+			s2 := make([]int, shape.n2)
+			for i := range s1 {
+				s1[i] = i
+			}
+			for i := range s2 {
+				s2[i] = i + 1
+			}
+
+			for b.Loop() {
+				seq := zip(S(slices.Values(s1)), S(slices.Values(s2)))
+				seq(func(v Zipped[int, int]) bool {
+					return true
+				})
+			}
 		})
 	}
 }

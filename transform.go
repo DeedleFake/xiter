@@ -112,16 +112,23 @@ type Zipped[T1, T2 any] struct {
 // Must not be a method. See https://github.com/golang/go/issues/80172.
 func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 	return func(yield func(Zipped[T1, T2]) bool) {
-		p1, stop := iter.Pull(seq1.Seq())
-		defer stop()
-		p2, stop := iter.Pull(seq2.Seq())
-		defer stop()
+		next2, stop2 := iter.Pull(seq2.Seq())
+		defer stop2()
 
-		for {
-			var val Zipped[T1, T2]
-			val.V1, val.OK1 = p1()
-			val.V2, val.OK2 = p2()
-			if (!val.OK1 && !val.OK2) || !yield(val) {
+		for v1 := range seq1 {
+			v2, ok2 := next2()
+			val := Zipped[T1, T2]{
+				V1: v1, OK1: true,
+				V2: v2, OK2: ok2,
+			}
+			if !yield(val) {
+				return
+			}
+		}
+
+		for v2, ok2 := next2(); ok2; v2, ok2 = next2() {
+			val := Zipped[T1, T2]{V2: v2, OK2: ok2}
+			if !yield(val) {
 				return
 			}
 		}
