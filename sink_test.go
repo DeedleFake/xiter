@@ -94,7 +94,7 @@ func FuzzSendRecvContext(f *testing.F) {
 		c := make(chan byte, len(data))
 		S(slices.Values(data)).SendContext(ctx, c)
 		close(c)
-		s := slices.Collect(RecvContext(ctx, c).Seq())
+		s := RecvContext(ctx, c).Collect()
 		if !slices.Equal(data, s) {
 			t.Fatal(s)
 		}

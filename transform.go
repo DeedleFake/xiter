@@ -437,7 +437,7 @@ func (seq Seq[T]) UniqFunc(eq func(T, T) bool) Seq[T] {
 // Sorted collects the entirety of seq and then returns a one-time use
 // iterator which yields the elements of seq in a sorted order.
 func Sorted[T cmp.Ordered](seq Seq[T]) Seq[T] {
-	s := slices.Collect(seq.Seq())
+	s := seq.Collect()
 	xheap.Init(s)
 
 	return func(yield func(T) bool) {
@@ -455,7 +455,7 @@ func Sorted[T cmp.Ordered](seq Seq[T]) Seq[T] {
 // use iterator which yields the elements of seq in a sorted order
 // determined by the provided comparison function.
 func (seq Seq[T]) SortedFunc(compare func(T, T) int) Seq[T] {
-	s := slices.Collect(seq.Seq())
+	s := seq.Collect()
 	xheap.InitFunc(s, compare)
 
 	return func(yield func(T) bool) {

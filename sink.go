@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+// Collect collects all items yielded by seq into a slice. It is
+// equivalent to [slices.Collect] and is provided purely for
+// convenience.
+func (seq Seq[T]) Collect() []T {
+	return slices.Collect(seq.Seq())
+}
+
 // CollectSize pre-allocates the slice being collected into to the
 // given size. It is provided purely for convenience.
 func (seq Seq[T]) CollectSize(len int) []T {
