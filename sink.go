@@ -24,14 +24,11 @@ func (seq Seq[T]) CollectSize(len int) []T {
 // Find returns the first value of seq for which f(value) returns
 // true.
 func (seq Seq[T]) Find(f func(T) bool) (r T, ok bool) {
-	seq(func(v T) bool {
-		if !f(v) {
-			return true
+	for v := range seq {
+		if f(v) {
+			return v, true
 		}
-		r = v
-		ok = true
-		return false
-	})
+	}
 	return r, ok
 }
 
@@ -62,10 +59,9 @@ func (seq Seq[T]) All(f func(T) bool) bool {
 //
 //	sum := seq.Reduce(0, func(total, v int) int { return total + v })
 func (seq Seq[T]) Reduce[R any](initial R, reducer func(R, T) R) R {
-	seq(func(v T) bool {
+	for v := range seq {
 		initial = reducer(initial, v)
-		return true
-	})
+	}
 	return initial
 }
 
@@ -75,11 +71,10 @@ func (seq Seq[T]) Reduce[R any](initial R, reducer func(R, T) R) R {
 func (seq Seq[T]) Fold(reducer func(T, T) T) T {
 	var prev T
 	r := func(v1, v2 T) T { return v2 }
-	seq(func(v T) bool {
+	for v := range seq {
 		prev = r(prev, v)
 		r = reducer
-		return true
-	})
+	}
 	return prev
 }
 
@@ -107,13 +102,13 @@ func (seq Seq[T]) IsSortedFunc(compare func(T, T) int) bool {
 	var prev T
 	c := func(T, T) int { return -1 }
 
-	sorted := true
-	seq(func(v T) bool {
-		sorted = c(prev, v) <= 0
+	for v := range seq {
+		if c(prev, v) > 0 {
+			return false
+		}
 		c, prev = compare, v
-		return sorted
-	})
-	return sorted
+	}
+	return true
 }
 
 // Equal returns true if seq1 and seq2 are the same length and each
@@ -146,11 +141,10 @@ func EqualFunc[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2], equal func(T1, T2) bool) 
 // Drain empties seq, returning the last value yielded. If no values
 // are yielded, ok will be false.
 func (seq Seq[T]) Drain() (v T, ok bool) {
-	seq(func(val T) bool {
+	for val := range seq {
 		v = val
 		ok = true
-		return true
-	})
+	}
 	return v, ok
 }
 
@@ -204,14 +198,13 @@ func Max[T cmp.Ordered](seq Seq[T]) T {
 // sequence ends or ctx is canceled. It blocks until one of those two
 // things happens.
 func (seq Seq[T]) SendContext(ctx context.Context, c chan<- T) {
-	seq(func(v T) bool {
+	for v := range seq {
 		select {
 		case <-ctx.Done():
-			return false
+			return
 		case c <- v:
-			return true
 		}
-	})
+	}
 }
 
 // StringJoin works exactly like [strings.Join] but it operates on a

@@ -14,9 +14,8 @@ func BenchmarkOldZip(b *testing.B) {
 		s1 := slices.Values(slice1)
 		s2 := slices.Values(slice2)
 		seq := oldZip(s1, s2)
-		seq(func(v Zipped[int, int]) bool {
-			return true
-		})
+		for range seq {
+		}
 	}
 }
 
