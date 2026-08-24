@@ -116,34 +116,6 @@ func StringFieldsFunc(s string, sep func(rune) bool) Seq[string] {
 	}
 }
 
-// ToPair takes a two-value iterator and produces a single-value
-// iterator of pairs.
-func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
-	return func(yield func(Pair[T1, T2]) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(P(v1, v2))
-		})
-	}
-}
-
-// V1 returns a Seq which iterates over only the T1 elements of seq.
-func (seq Seq2[T1, T2]) V1() Seq[T1] {
-	return func(yield func(T1) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(v1)
-		})
-	}
-}
-
-// V2 returns a Seq which iterates over only the T2 elements of seq.
-func (seq Seq2[T1, T2]) V2() Seq[T2] {
-	return func(yield func(T2) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(v2)
-		})
-	}
-}
-
 // OfChan returns a Seq which yields values received from c. The
 // sequence ends when c is closed. It is equivalent to range c.
 func OfChan[T any](c <-chan T) Seq[T] {

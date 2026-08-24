@@ -108,6 +108,8 @@ type Zipped[T1, T2 any] struct {
 
 // Zip returns a new Seq that yields the values of seq1 and seq2
 // simultaneously.
+//
+// Must not be a method. See https://github.com/golang/go/issues/80172.
 func Zip[T1, T2 any](seq1 Seq[T1], seq2 Seq[T2]) Seq[Zipped[T1, T2]] {
 	return func(yield func(Zipped[T1, T2]) bool) {
 		p1, stop := iter.Pull(seq1.Seq())
@@ -187,6 +189,8 @@ func MergeFunc[T any](seq1, seq2 Seq[T], compare func(T, T) int) Seq[T] {
 // next, so it should not be held onto after each iteration has ended.
 // [Seq.Map] and [slices.Clone] may come in handy for dealing with
 // situations where this is necessary.
+//
+// Must not be a method. See https://github.com/golang/go/issues/80172.
 func Windows[T any](seq Seq[T], n int) Seq[[]T] {
 	return func(yield func([]T) bool) {
 		win := make([]T, 0, n)
@@ -223,6 +227,8 @@ func Windows[T any](seq Seq[T], n int) Seq[[]T] {
 //	[6, 7, 8]
 //
 // Like with Windows, the slice is reused between iterations.
+//
+// Must not be a method. See https://github.com/golang/go/issues/80172.
 func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 	return func(yield func([]T) bool) {
 		win := make([]T, 0, n)
@@ -257,6 +263,8 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 // the function changes from the previous call, a new chunk is started.
 //
 // Like with Chunks, the slice is reused between iterations.
+//
+// Must not be a method. See https://github.com/golang/go/issues/80172.
 func ChunksFunc[T any, C comparable](seq Seq[T], chunker func(T) C) Seq[[]T] {
 	return func(yield func([]T) bool) {
 		next, stop := iter.Pull(seq.Seq())
@@ -458,5 +466,46 @@ func (seq Seq[T]) SortedFunc(compare func(T, T) int) Seq[T] {
 				return
 			}
 		}
+	}
+}
+
+// ToPair takes a two-value iterator and produces a single-value
+// iterator of pairs.
+//
+// Must not be a method. See https://github.com/golang/go/issues/80172.
+func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
+	return func(yield func(Pair[T1, T2]) bool) {
+		seq(func(v1 T1, v2 T2) bool {
+			return yield(P(v1, v2))
+		})
+	}
+}
+
+// V1 returns a Seq which iterates over only the T1 elements of seq.
+func (seq Seq2[T1, T2]) V1() Seq[T1] {
+	return func(yield func(T1) bool) {
+		seq(func(v1 T1, v2 T2) bool {
+			return yield(v1)
+		})
+	}
+}
+
+// V2 returns a Seq which iterates over only the T2 elements of seq.
+func (seq Seq2[T1, T2]) V2() Seq[T2] {
+	return func(yield func(T2) bool) {
+		seq(func(v1 T1, v2 T2) bool {
+			return yield(v2)
+		})
+	}
+}
+
+// FromPair converts a Seq of pairs to a two-value Seq.
+//
+// Must not be a method. See https://github.com/golang/go/issues/80172.
+func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
+	return func(yield func(T1, T2) bool) {
+		seq(func(v Pair[T1, T2]) bool {
+			return yield(v.Split())
+		})
 	}
 }

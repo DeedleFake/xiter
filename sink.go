@@ -193,15 +193,6 @@ func Max[T cmp.Ordered](seq Seq[T]) T {
 	return seq.Fold(func(v1, v2 T) T { return max(v1, v2) })
 }
 
-// FromPair converts a Seq of pairs to a two-value Seq.
-func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
-	return func(yield func(T1, T2) bool) {
-		seq(func(v Pair[T1, T2]) bool {
-			return yield(v.Split())
-		})
-	}
-}
-
 // SendContext sends values from seq to c repeatedly until either the
 // sequence ends or ctx is canceled. It blocks until one of those two
 // things happens.
