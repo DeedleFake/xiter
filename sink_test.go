@@ -64,8 +64,25 @@ func TestAny(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	r := Of(2, 4, 6, 7).All(func(v int) bool { return v%2 == 0 })
+	even := func(v int) bool { return v%2 == 0 }
+
+	r := Of(2, 4, 6).All(even)
+	if !r {
+		t.Fatal(r)
+	}
+
+	r = Of(2, 4, 6, 7).All(even)
 	if r {
+		t.Fatal(r)
+	}
+
+	r = Of(1, 3, 5).All(even)
+	if r {
+		t.Fatal(r)
+	}
+
+	r = Of[int]().All(even)
+	if !r {
 		t.Fatal(r)
 	}
 }

@@ -49,7 +49,7 @@ func (seq Seq[T]) Any(f func(T) bool) bool {
 
 // All returns true if f(element) is true for every element of seq.
 func (seq Seq[T]) All(f func(T) bool) bool {
-	return !seq.Any(f)
+	return !seq.Any(func(v T) bool { return !f(v) })
 }
 
 // Reduce calls reducer on each value of seq, passing it initial as
