@@ -173,9 +173,8 @@ func benchmarkZip(b *testing.B, zip func(Seq[int], Seq[int]) Seq[Zipped[int, int
 
 			for b.Loop() {
 				seq := zip(S(slices.Values(s1)), S(slices.Values(s2)))
-				seq(func(v Zipped[int, int]) bool {
-					return true
-				})
+				for range seq {
+				}
 			}
 		})
 	}

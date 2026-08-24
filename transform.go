@@ -11,9 +11,11 @@ import (
 // Map returns a Seq that yields the values of seq transformed via f.
 func (seq Seq[T1]) Map[T2 any](f func(T1) T2) Seq[T2] {
 	return func(yield func(T2) bool) {
-		seq(func(v T1) bool {
-			return yield(f(v))
-		})
+		for v := range seq {
+			if !yield(f(v)) {
+				return
+			}
+		}
 	}
 }
 
@@ -21,12 +23,14 @@ func (seq Seq[T1]) Map[T2 any](f func(T1) T2) Seq[T2] {
 // f(value) returns true.
 func (seq Seq[T]) Filter(f func(T) bool) Seq[T] {
 	return func(yield func(T) bool) {
-		seq(func(v T) bool {
+		for v := range seq {
 			if !f(v) {
-				return true
+				continue
 			}
-			return yield(v)
-		})
+			if !yield(v) {
+				return
+			}
+		}
 	}
 }
 
@@ -34,13 +38,15 @@ func (seq Seq[T]) Filter(f func(T) bool) Seq[T] {
 // then yields the rest normally.
 func (seq Seq[T]) Skip(n int) Seq[T] {
 	return func(yield func(T) bool) {
-		seq(func(v T) bool {
+		for v := range seq {
 			if n > 0 {
 				n--
-				return true
+				continue
 			}
-			return yield(v)
-		})
+			if !yield(v) {
+				return
+			}
+		}
 	}
 }
 
@@ -54,25 +60,29 @@ func (seq Seq[T]) Skip(n int) Seq[T] {
 // iteration anyways.
 func Handle[T any](seq Seq2[T, error], f func(error) bool) Seq[T] {
 	return func(yield func(T) bool) {
-		seq(func(v T, err error) bool {
-			if err != nil {
-				return f(err) && yield(v)
+		for v, err := range seq {
+			if err != nil && !f(err) {
+				return
 			}
-			return yield(v)
-		})
+			if !yield(v) {
+				return
+			}
+		}
 	}
 }
 
 // Limit returns a Seq that yields at most n values from seq.
 func (seq Seq[T]) Limit(n int) Seq[T] {
 	return func(yield func(T) bool) {
-		seq(func(v T) bool {
+		for v := range seq {
 			if !yield(v) {
-				return false
+				return
 			}
 			n--
-			return n > 0
-		})
+			if n <= 0 {
+				return
+			}
+		}
 	}
 }
 
@@ -86,14 +96,13 @@ func Concat[T any, S SeqLike[T]](seqs ...S) Seq[T] {
 // turn.
 func Flatten[T any, S SeqLike[T]](seq Seq[S]) Seq[T] {
 	return func(yield func(T) bool) {
-		seq(func(s S) bool {
-			cont := true
-			s(func(v T) bool {
-				cont = yield(v)
-				return cont
-			})
-			return cont
-		})
+		for s := range seq {
+			for v := range s {
+				if !yield(v) {
+					return
+				}
+			}
+		}
 	}
 }
 
@@ -202,20 +211,25 @@ func Windows[T any](seq Seq[T], n int) Seq[[]T] {
 	return func(yield func([]T) bool) {
 		win := make([]T, 0, n)
 
-		seq(func(v T) bool {
+		for v := range seq {
 			if len(win) < n-1 {
 				win = append(win, v)
-				return true
+				continue
 			}
 			if len(win) < n {
 				win = append(win, v)
-				return yield(win)
+				if !yield(win) {
+					return
+				}
+				continue
 			}
 
 			copy(win, win[1:])
 			win[len(win)-1] = v
-			return yield(win)
-		})
+			if !yield(win) {
+				return
+			}
+		}
 		if len(win) < n {
 			yield(win)
 		}
@@ -240,7 +254,7 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 	return func(yield func([]T) bool) {
 		win := make([]T, 0, n)
 
-		seq(func(v T) bool {
+		for v := range seq {
 			if len(win) == n {
 				clear(win)
 				win = win[:0]
@@ -248,17 +262,22 @@ func Chunks[T any](seq Seq[T], n int) Seq[[]T] {
 
 			if len(win) < n-1 {
 				win = append(win, v)
-				return true
+				continue
 			}
 			if len(win) < n {
 				win = append(win, v)
-				return yield(win)
+				if !yield(win) {
+					return
+				}
+				continue
 			}
 
 			// This should only be reachable if n is 0, so just yield a
 			// bunch of empty slices because why not?
-			return yield(win)
-		})
+			if !yield(win) {
+				return
+			}
+		}
 		if len(win) < n {
 			yield(win)
 		}
@@ -316,13 +335,15 @@ func ChunksFunc[T any, C comparable](seq Seq[T], chunker func(T) C) Seq[[]T] {
 // second.
 func (seq Seq[T]) Split(f func(T) bool) SplitSeq[T, T] {
 	return func(true, false func(T) bool) {
-		seq(func(v T) bool {
+		for v := range seq {
 			y := false
 			if f(v) {
 				y = true
 			}
-			return y(v)
-		})
+			if !y(v) {
+				return
+			}
+		}
 	}
 }
 
@@ -330,9 +351,11 @@ func (seq Seq[T]) Split(f func(T) bool) SplitSeq[T, T] {
 // Seq2 yields both values via the SplitSeq.
 func (seq Seq2[T1, T2]) Split2() SplitSeq[T1, T2] {
 	return func(y1 func(T1) bool, y2 func(T2) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return y1(v1) && y2(v2)
-		})
+		for v1, v2 := range seq {
+			if !y1(v1) || !y2(v2) {
+				return
+			}
+		}
 	}
 }
 
@@ -344,15 +367,21 @@ func (seq Seq[T]) Cache() Seq[T] {
 	var cache []T
 	return func(yield func(T) bool) {
 		if cache != nil {
-			slices.Values(cache)(yield)
+			for _, v := range cache {
+				if !yield(v) {
+					return
+				}
+			}
 			return
 		}
 
 		cache = []T{}
-		seq(func(v T) bool {
+		for v := range seq {
 			cache = append(cache, v)
-			return yield(v)
-		})
+			if !yield(v) {
+				return
+			}
+		}
 	}
 }
 
@@ -361,10 +390,12 @@ func (seq Seq[T]) Cache() Seq[T] {
 func (seq Seq[T]) Enumerate() Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		i := -1
-		seq(func(v T) bool {
+		for v := range seq {
 			i++
-			return yield(i, v)
-		})
+			if !yield(i, v) {
+				return
+			}
+		}
 	}
 }
 
@@ -373,14 +404,18 @@ func (seq Seq[T]) Enumerate() Seq2[int, T] {
 func Or[T any, S SeqLike[T]](seqs ...S) Seq[T] {
 	ss := Of(seqs...).Filter(func(s S) bool { return s != nil })
 	return func(yield func(T) bool) {
-		ss(func(seq S) bool {
-			cont := true
-			seq(func(v T) bool {
-				cont = false
-				return yield(v)
-			})
-			return cont
-		})
+		for seq := range ss {
+			empty := true
+			for v := range seq {
+				empty = false
+				if !yield(v) {
+					return
+				}
+			}
+			if !empty {
+				return
+			}
+		}
 	}
 }
 
@@ -482,27 +517,33 @@ func (seq Seq[T]) SortedFunc(compare func(T, T) int) Seq[T] {
 // Must not be a method. See https://github.com/golang/go/issues/80172.
 func ToPair[T1, T2 any](seq Seq2[T1, T2]) Seq[Pair[T1, T2]] {
 	return func(yield func(Pair[T1, T2]) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(P(v1, v2))
-		})
+		for v1, v2 := range seq {
+			if !yield(P(v1, v2)) {
+				return
+			}
+		}
 	}
 }
 
 // V1 returns a Seq which iterates over only the T1 elements of seq.
 func (seq Seq2[T1, T2]) V1() Seq[T1] {
 	return func(yield func(T1) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(v1)
-		})
+		for v1 := range seq {
+			if !yield(v1) {
+				return
+			}
+		}
 	}
 }
 
 // V2 returns a Seq which iterates over only the T2 elements of seq.
 func (seq Seq2[T1, T2]) V2() Seq[T2] {
 	return func(yield func(T2) bool) {
-		seq(func(v1 T1, v2 T2) bool {
-			return yield(v2)
-		})
+		for _, v2 := range seq {
+			if !yield(v2) {
+				return
+			}
+		}
 	}
 }
 
@@ -511,8 +552,10 @@ func (seq Seq2[T1, T2]) V2() Seq[T2] {
 // Must not be a method. See https://github.com/golang/go/issues/80172.
 func FromPair[T1, T2 any](seq Seq[Pair[T1, T2]]) Seq2[T1, T2] {
 	return func(yield func(T1, T2) bool) {
-		seq(func(v Pair[T1, T2]) bool {
-			return yield(v.Split())
-		})
+		for v := range seq {
+			if !yield(v.Split()) {
+				return
+			}
+		}
 	}
 }
